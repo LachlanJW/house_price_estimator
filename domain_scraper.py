@@ -99,8 +99,8 @@ async def scrape_properties(urls: List[str]) -> List[Dict]:
 async def run():
     data = await scrape_properties(
         urls=[
-            "https://www.domain.com.au/2002-464-collins-street-melbourne-vic-3000-2019017210", # noqa
-            "https://www.domain.com.au/404-258-flinders-lane-melbourne-vic-3000-2018819448" # noqa
+            "https://www.domain.com.au/19-2-archibald-street-lyneham-act-2602-2019067942", # noqa
+            "https://www.domain.com.au/9-fox-place-lyneham-act-2602-2019071650" # noqa
         ]
     )
     # print the data in JSON format
