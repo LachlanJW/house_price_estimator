@@ -10,9 +10,17 @@ from typing import List, Dict
 # https://scrapfly.io/blog/how-to-scrape-domain-com-au-real-estate-property-data/
 
 
+# Paste the urls to be searched into this list,
+# they will be used in the run function at the bottom of the page
+URLS = [
+    "https://www.domain.com.au/19-2-archibald-street-lyneham-act-2602-2019067942", # noqa
+    "https://www.domain.com.au/9-fox-place-lyneham-act-2602-2019071650" # noqa
+]
+
+
 client = AsyncClient(
     http2=True,
-    # add basic browser headers to mimize blocking chances
+    # Add basic browser headers to mimize blocking chances
     headers={
         "accept-language": "en-US,en;q=0.9",
         "user-agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
@@ -97,12 +105,8 @@ async def scrape_properties(urls: List[str]) -> List[Dict]:
 
 
 async def run():
-    data = await scrape_properties(
-        urls=[
-            "https://www.domain.com.au/19-2-archibald-street-lyneham-act-2602-2019067942", # noqa
-            "https://www.domain.com.au/9-fox-place-lyneham-act-2602-2019071650" # noqa
-        ]
-    )
+    data = await scrape_properties(URLS)
+
     # print the data in JSON format
     print(json.dumps(data, indent=2))
 
