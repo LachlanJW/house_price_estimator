@@ -78,7 +78,7 @@ def parse_property_page(data: Dict) -> Dict:
 def parse_search_page(data: Dict) -> List[Dict]:
     """Refine search pages data"""
     if not data:
-        return {}
+        return
     data = data["listingsMap"]
     result = []
     # iterate over card items in the search data
@@ -128,12 +128,12 @@ async def scrape_search(url: str, max_scrape_pages: int) -> List[Dict]:
     max_scrape_pages = min(max_scrape_pages, max_search_pages)
 
     log.info(
-        f"scraping search pagination, remaining ({max_scrape_pages - 1} more pages)"
+        f"scraping ({max_scrape_pages} pages)"
     )
     # add the remaining search pages to a scraping list
     other_pages = [
         ScrapeConfig(
-            # paginate the search pages by adding a "?page" parameter at the end of the URL
+            # add a "?page" parameter at the end of the URL
             str(first_page.context["url"]) + f"?page={page}",
             **BASE_CONFIG,
         )
