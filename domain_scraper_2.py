@@ -92,8 +92,10 @@ def parse_search_page(data: Dict) -> List[Dict]:
         }""",
         item,
         )
-        # Exclude the skeletonImages key from the data
-        parsed_data["listingModel"].pop("skeletonImages")
+        # Exclude the some image keys from the data
+        for element in ["skeletonImages", "images", "branding"]:
+            parsed_data["listingModel"].pop(element)
+
         result.append(parsed_data)
     return result
 

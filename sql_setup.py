@@ -1,4 +1,6 @@
 # This file served to create an initial sql database for house price project
+# It does not need to be accessed after initialisation
+
 import mysql.connector  # type: ignore
 import os  # type: ignore
 from mysql.connector import Error
