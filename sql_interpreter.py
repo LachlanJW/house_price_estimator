@@ -43,7 +43,7 @@ def run_table_maker(engine):
 def sql_query(query: str):
     try:
         with engine.connect() as conn:
-            sql = text('SELECT * FROM houses_test')
+            sql = text(query)
             result = conn.execute(sql)
             rows = result.fetchall()
             for row in rows:
@@ -52,5 +52,21 @@ def sql_query(query: str):
         print(f"An error occurred: {e}")
 
 
-query = 'SELECT * FROM houses_test'
-sql_query(query)
+def get_sql_columns(col1: str, col2: str, database: str):
+    try:
+        with engine.connect() as conn:
+            sql = text(f"SELECT `{col1}`, `{col2}` FROM {database};")
+            result = conn.execute(sql)
+            return result.fetchall()
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred: {e}")
+
+
+data = get_sql_columns(col1="listingModel.price",
+                       col2="listingModel.features.beds",
+                       database='houses_test')
+
+print(data)
+# query = 'SELECT * FROM houses_test'
+# sql_query(query)
