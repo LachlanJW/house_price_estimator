@@ -1,13 +1,12 @@
+# This code has been slightly modified from a scrapfly.io tutorial:
+# https://scrapfly.io/blog/how-to-scrape-domain-com-au-real-estate-property-data/
+
 import json
 import asyncio
 import jmespath
 from httpx import AsyncClient, Response
 from parsel import Selector
 from typing import List, Dict
-
-
-# This code has been copied from a scrapfly.io tutorial:
-# https://scrapfly.io/blog/how-to-scrape-domain-com-au-real-estate-property-data/
 
 
 # Paste the urls to be searched into this list,

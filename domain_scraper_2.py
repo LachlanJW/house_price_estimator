@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse  # type: ignore # noqa
 from typing import Dict, List
 from loguru import logger as log
+import json
 
 
 # Alter the url provided to reflect the desired suburb, state and postcode
@@ -155,7 +156,9 @@ async def run():
     print("running Domain.com.au scrape")
     # Use url and page scrape values provided at top of document
     search_data = await scrape_search(url=URL, max_scrape_pages=SCRAPE_PAGES)
-    print(search_data)
+
+    with open('data.json', 'w', encoding='utf-8') as f:
+        json.dump(search_data, f, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":

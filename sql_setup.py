@@ -38,6 +38,27 @@ def execute_query(connection, query):
         print(f"Error: '{err}'")
 
 
+# Connect to an existing SQL server database
+def sql_connection(passwd: str, db_name: str,
+                   host: str = "localhost", user: str = "root"):
+    """Takes an sql database, password, host and username.
+    Default host is localhost, default user is root,
+    passwd and database must be provided."""
+    connection = None
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            passwd=passwd,
+            auth_plugin='mysql_native_password',
+            database=db_name
+        )
+        print("MySQL Database connection successful")
+    except Error as err:
+        print(f"Error: '{err}'")
+    return connection
+
+
 # # Create house price database
 create_database_query = "CREATE DATABASE houses"
 

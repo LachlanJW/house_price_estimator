@@ -1,62 +1,56 @@
 # This script takes data from the domain scraper to create an SQL database
-# of house data for a given subrub and number of pages to scrape
 
-import mysql.connector  # type: ignore
 import os  # type: ignore
-from mysql.connector import Error
-from dotenv import load_dotenv
 import pandas as pd  # type: ignore
-from sqlalchemy import create_engine  # type: ignore
+import json
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text  # type: ignore
+from sqlalchemy.exc import SQLAlchemyError
+from typing import Dict, List
 
 load_dotenv()
 
+# Create an sql engine
+sql_string = f"mysql+mysqlconnector://root:{os.getenv("SQL_PW")}@localhost:3306/houses"
+engine = create_engine(sql_string, echo=True)  # Echo prints sql to console
 
-# Connect to an existing SQL server database
-def create_sql_connection(passwd: str, db_name: str,
-                          host: str = "localhost", user: str = "root"):
-    """Takes an sql database, password, host and username.
-    Default host is localhost, default user is root,
-    passwd and database must be provided."""
-    connection = None
+
+def json_to_sql_table(data: List[Dict], engine):
+    """Take a json object and an sql engine and normalise, create a pandas
+    dataframe, then insert as an sql table. Note this is highly inefficient
+    and created purely for curiosity"""
+    normalise = pd.json_normalize(data)
+    dataframe = pd.DataFrame(normalise)
+
+    dataframe.to_sql(name='houses_test', con=engine,
+                     if_exists='replace', index=False)
+
+    return
+
+
+def run_table_maker(engine):
+    # Open test data file
+    with open("data.json", 'r') as file:
+        test_data = json.load(file)
+
+    # Add the data as a table to SQL server, overwrites previous
+    json_to_sql_table(data=test_data, engine=engine)
+
+    return
+
+
+# Get data from sql table
+def sql_query(query: str):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            passwd=passwd,
-            auth_plugin='mysql_native_password',
-            database=db_name
-        )
-        print("MySQL Database connection successful")
-    except Error as err:
-        print(f"Error: '{err}'")
-    return connection
+        with engine.connect() as conn:
+            sql = text('SELECT * FROM houses_test')
+            result = conn.execute(sql)
+            rows = result.fetchall()
+            for row in rows:
+                print(row)
+    except SQLAlchemyError as e:
+        print(f"An error occurred: {e}")
 
 
-# Execute sql query
-def execute_query(connection, query: str):
-    """Takes a connection from mysql connector
-    and an SQL query to connect to a database"""
-    cursor = connection.cursor()
-    try:
-        cursor.execute(query)
-        connection.commit()
-        print("Query successful")
-    except Error as err:
-        print(f"Error: '{err}'")
-
-
-# # Create house data table in houses database
-house_table_query = """
-CREATE TABLE houses (
-    id INT PRIMARY KEY,
-    lat FLOAT,
-    lon FLOAT,
-    date VARCHAR(50),
-    time VARCHAR(50),
-    severity VARCHAR(50)
-    );
-"""
-
-pwd = os.getenv("SQL_PW")
-connection = create_sql_connection(passwd=pwd, db_name="houses")
-execute_query(connection=connection, query=house_table_query)
+query = 'SELECT * FROM houses_test'
+sql_query(query)
