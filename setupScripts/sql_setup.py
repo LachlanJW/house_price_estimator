@@ -60,7 +60,12 @@ def sql_connection(passwd: str, db_name: str,
 
 
 # # Create house price database
-create_database_query = "CREATE DATABASE houses"
+# create_database_query = "CREATE DATABASE houses"
 
-connection = create_sql_connection(passwd=os.getenv("SQL_PW"))
-execute_query(connection=connection, query=create_database_query)
+# connection = create_sql_connection(passwd=os.getenv("SQL_PW"))
+# execute_query(connection=connection, query=create_database_query)
+
+
+# Connect to house price database
+# connection = create_sql_connection(passwd=os.getenv("SQL_PW"), db_name="houses")
+# execute_query(connection=connection, query=query)
