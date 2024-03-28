@@ -1,5 +1,5 @@
 # This script takes data from the domain scraper to create an SQL database
-# Running the script will open data.json and overwrite the sql table houses_test
+# Running the script will open data.json and overwrite the sql table houses
 # The get_data_from_sql function is called by the price estimator script
 
 import os
@@ -28,7 +28,7 @@ def create_table_from_json(data: List[Dict]) -> None:
         dataframe = pd.DataFrame(normalized_data)
 
         # Write DataFrame to SQL table
-        dataframe.to_sql(name='houses_test', con=engine,
+        dataframe.to_sql(name='houses', con=engine,
                          if_exists='replace', index=False)
     except SQLAlchemyError as e:
         print(f"An error occurred while creating the table: {e}")

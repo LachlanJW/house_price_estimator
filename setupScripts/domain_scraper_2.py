@@ -15,7 +15,7 @@ import json
 # Alter the url provided to reflect the desired suburb, state and postcode
 # Alter the number of pages you want scraped
 URL = ("https://www.domain.com.au/sold-listings/coombs-act-2611/?excludepricewithheld=1") # noqa
-SCRAPE_PAGES = 1
+SCRAPE_PAGES = 200
 
 load_dotenv()
 
@@ -157,9 +157,11 @@ async def run():
     # Use url and page scrape values provided at top of document
     search_data = await scrape_search(url=URL, max_scrape_pages=SCRAPE_PAGES)
 
-    with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(search_data, f, ensure_ascii=False, indent=4)
+    # Write this output as a text dataset "data.json" (overwrite existing)
+    with open('data.json', 'w', encoding='utf-8') as file:
+        json.dump(search_data, file, ensure_ascii=False, indent=4)
 
+    return
 
 if __name__ == "__main__":
     asyncio.run(run())
