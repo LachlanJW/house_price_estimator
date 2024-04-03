@@ -25,10 +25,36 @@ def create_table_from_json(data: List[Dict]) -> None:
     try:
         # Normalize JSON data and create a DataFrame
         normalized_data = pd.json_normalize(data)
-        dataframe = pd.DataFrame(normalized_data)
+        df = pd.DataFrame(normalized_data)
+
+        # Perform some data cleaning, type conversion etc
+        # First, convert some columns to integer
+        int_list = ["id",
+                    "address.postcode",
+                    "address.lat",
+                    "address.lng",
+                    "features.beds",
+                    "features.baths",
+                    "features.parking",
+                    "features.landSize"
+                    ]
+        for column in int_list:
+            df[column] = df[column].astype(int)
+        
+        # Then some string parsing
+        df["price"] = df['price'].str.replace('$', '').str.replace(',', '').astype(int)
+        df.loc[df['features.propertyTypeFormatted'] == 'ApartmentUnitFlat', 'features.propertyType'] = 'Apartment'
+
+        # Finally, remove some irrelevant columns
+        df = df.drop(columns=[
+            'features.propertyTypeFormatted',
+            'features.landUnit',
+            'features.isRural',
+            'features.isRetirement'
+            ])
 
         # Write DataFrame to SQL table
-        dataframe.to_sql(name='houses', con=engine,
+        df.to_sql(name='houses', con=engine,
                          if_exists='replace', index=False)
     except SQLAlchemyError as e:
         print(f"An error occurred while creating the table: {e}")
