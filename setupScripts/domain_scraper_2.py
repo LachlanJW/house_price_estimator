@@ -13,8 +13,8 @@ from loguru import logger as log
 
 # Alter the url provided to reflect the desired suburb, state and postcode
 # Alter the number of pages you want scraped
-URL = ("https://www.domain.com.au/sold-listings/wright-act-2611/?excludepricewithheld=1") # noqa
-SCRAPE_PAGES = 50
+URL = ("https://www.domain.com.au/sold-listings/coombs-act-2611/?excludepricewithheld=1") # noqa
+SCRAPE_PAGES = 1
 
 load_dotenv()
 
@@ -129,9 +129,9 @@ async def scrape_search(url: str, max_scrape_pages: int) -> List[Dict]:
     ]
     # Scrape the remaining search pages concurrently
     async for response in SCRAPFLY.concurrent_scrape(other_pages):
-        # parse the data from script tag        
+        # Parse the data from script tag
         data = parse_hidden_data(response)
-        # Append the data to the list after refining        
+        # Append the data to the list after refining
         search_data.extend(parse_search_page(data))
     log.success(f"scraped ({len(search_data)}) from {url}")
     return search_data
@@ -142,11 +142,17 @@ async def run():
     # Use url and page scrape values provided at top of document
     search_data = await scrape_search(url=URL, max_scrape_pages=SCRAPE_PAGES)
 
-    # Append this output to "data.json"
-    with open('data.json', 'r', encoding='utf-8') as file:
-        existing_data = json.load(file)
-        total_data = existing_data.extend(search_data)
+    # Read existing data from "data.json"
+    try:
+        with open('data.json', 'r', encoding='utf-8') as file:
+            existing_data = json.load(file)
+    except FileNotFoundError:
+        existing_data = []
 
+    # Append new data to existing data
+    total_data = existing_data + search_data
+
+    # Write the combined data back to "data.json"
     with open('data.json', 'w', encoding='utf-8') as file:
         json.dump(total_data, file, ensure_ascii=False, indent=4)
 

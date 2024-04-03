@@ -5,10 +5,10 @@
 import os
 import json
 from dotenv import load_dotenv
-import pandas as pd
+import pandas as pd  # type: ignore
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence
 
 # Load environment variables
 load_dotenv()
@@ -16,7 +16,7 @@ SQL_PASSWORD = os.getenv("SQL_PW")
 DATABASE_NAME = "houses"
 
 # Create SQL engine
-sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{DATABASE_NAME}"
+sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{DATABASE_NAME}"  # noqa
 engine = create_engine(sql_string)  # Set echo=True to print to console
 
 
@@ -38,12 +38,14 @@ def create_table_from_json(data: List[Dict]) -> None:
                     "features.parking",
                     "features.landSize"
                     ]
-        for column in int_list:
-            df[column] = df[column].astype(int)
-        
+        for column in int_list:  # Fill NA values as 0
+            df[column] = df[column].fillna(0).astype(int)
+
         # Then some string parsing
-        df["price"] = df['price'].str.replace('$', '').str.replace(',', '').astype(int)
-        df.loc[df['features.propertyTypeFormatted'] == 'ApartmentUnitFlat', 'features.propertyType'] = 'Apartment'
+        df['price'] = df['price'].str.replace('$', '').str.replace(',', '')
+        df['price'] = df['price'].astype(int)
+        df.loc[df['features.propertyTypeFormatted'] == 'ApartmentUnitFlat',
+               'features.propertyType'] = 'Apartment'
 
         # Finally, remove some irrelevant columns
         df = df.drop(columns=[
@@ -55,16 +57,17 @@ def create_table_from_json(data: List[Dict]) -> None:
 
         # Write DataFrame to SQL table
         df.to_sql(name='houses', con=engine,
-                         if_exists='replace', index=False)
+                  if_exists='replace', index=False)
+        print("Successfully written to sql table")
     except SQLAlchemyError as e:
         print(f"An error occurred while creating the table: {e}")
 
 
-def get_data_from_sql(col1: str, col2: str, table: str) -> List[Tuple]:
+def get_data_from_sql(table: str) -> Sequence:
     """Retrieve data from an SQL table"""
     try:
         with engine.connect() as conn:
-            sql_query = text(f"SELECT `{col1}`, `{col2}` FROM {table};")
+            sql_query = text(f"SELECT * FROM {table};")
             result = conn.execute(sql_query)
             return result.fetchall()
     except SQLAlchemyError as e:
