@@ -1,4 +1,4 @@
-# This code has been slightly modified from a scrapfly.io tutorial:
+# This code has been inspired by the scrapfly.io tutorial:
 # https://scrapfly.io/blog/how-to-scrape-domain-com-au-real-estate-property-data/
 
 import os
@@ -9,13 +9,12 @@ from dotenv import load_dotenv
 from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse  # type: ignore # noqa
 from typing import Dict, List
 from loguru import logger as log
-import json
 
 
 # Alter the url provided to reflect the desired suburb, state and postcode
 # Alter the number of pages you want scraped
-URL = ("https://www.domain.com.au/sold-listings/coombs-act-2611/?excludepricewithheld=1") # noqa
-SCRAPE_PAGES = 200
+URL = ("https://www.domain.com.au/sold-listings/wright-act-2611/?excludepricewithheld=1") # noqa
+SCRAPE_PAGES = 50
 
 load_dotenv()
 
@@ -46,30 +45,20 @@ def parse_property_page(data: Dict) -> Dict:
     result = jmespath.search(
         """{
     listingId: listingId,
-    listingUrl: listingUrl,
-    unitNumber: unitNumber,
-    streetNumber: streetNumber,
+    price: price,
     street: street,
     suburb: suburb,
+    state: state,
     postcode: postcode,
-    createdOn: createdOn,
     propertyType: propertyType,
+    lat: lat,
+    lng: lng,
     beds: beds,
-    phone: phone,
-    agencyName: agencyName,
-    propertyDeveloperName: propertyDeveloperName,
-    agencyProfileUrl: agencyProfileUrl,
-    propertyDeveloperUrl: propertyDeveloperUrl,
-    description: description,
-    loanfinder: loanfinder,
-    schools: schoolCatchment.schools,
-    suburbInsights: suburbInsights,
-    gallery: gallery,
-    listingSummary: listingSummary,
-    agents: agents,
+    baths: baths,
+    parking: parking,
+    landsize: landsize,
     features: features,
-    structuredFeatures: structuredFeatures,
-    faqs: faqs
+    tagText: tagText,
     }""",
         data,
     )
@@ -79,24 +68,20 @@ def parse_property_page(data: Dict) -> Dict:
 def parse_search_page(data: Dict) -> List[Dict]:
     """Refine search pages data"""
     if not data:
-        return
+        return [{}]
     data = data["listingsMap"]
     result = []
-    # iterate over card items in the search data
+    # Obtain only the required data
     for key in data.keys():
         item = data[key]
         parsed_data = jmespath.search(
-            """{
-        id: id,
-        listingType: listingType,
-        listingModel: listingModel
-        }""",
-        item,
+            """{ id: id,
+                 price: listingModel.price,
+                 address: listingModel.address,
+                 features: listingModel.features
+                 date: listingModel.tags.tagText  }""",
+            item,
         )
-        # Exclude the some image keys from the data
-        for element in ["skeletonImages", "images", "branding"]:
-            parsed_data["listingModel"].pop(element)
-
         result.append(parsed_data)
     return result
 
@@ -157,9 +142,13 @@ async def run():
     # Use url and page scrape values provided at top of document
     search_data = await scrape_search(url=URL, max_scrape_pages=SCRAPE_PAGES)
 
-    # Write this output as a text dataset "data.json" (overwrite existing)
+    # Append this output to "data.json"
+    with open('data.json', 'r', encoding='utf-8') as file:
+        existing_data = json.load(file)
+        total_data = existing_data.extend(search_data)
+
     with open('data.json', 'w', encoding='utf-8') as file:
-        json.dump(search_data, file, ensure_ascii=False, indent=4)
+        json.dump(total_data, file, ensure_ascii=False, indent=4)
 
     return
 
