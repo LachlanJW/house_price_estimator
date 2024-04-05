@@ -1,25 +1,26 @@
 # House Price Estimator
-
-
+This is a project designed for practice in scraping, data handling and SQL. There are many inefficiencies (conversion of a dataframe to SQL and back) simply conducted for practise.
+Scraping from the domain.com website should be conducted at slow rates, of publicly available data in small quantities that are not for sale.
 
 ## Part 1: Obtaining house price data
-
-The first portion of this project deals with obtaining house price data from domain.com.au using the scrapfly API.
-
-The first script is a simple example which takes a list of url strings and returns the data as a json is **domain_scraper.py** This is in the folder setupScripts, and does not need to be run.
-
-A more complex script is **domain_scraper2.py** which searches through result pages in a given postcode for the listing data and creates a json file.
-This script reuses functions from domain_scraper.py, but they are repeated in domain_scraper2.py for clarity. A scrapfly API key is required, and the script takes inputs of a base url (including suburb information), and the number of pages to be scraped. Running this multiple times will append data onto the existing json file. 
+The first portion of this project deals with obtaining house price data from domain.com.au using the scrapfly API. The central script, **domain_scraper2.py** searches through result pages in a given postcode for the listing data and creates a **data.json** file of the output. Each time the script is run, output is appended to this file. The **suburbs_postcodes.json** keeps track of which suburbs have been added to avoid double-ups.
 
 
 ## Part 2: Creating an SQL database of the scraped data
-
-**sql_setup** is a short script creating a database called "houses" on the local MySQL system which does not need to be run after the first time.
-
-The database setup is performed by **sql_interpreter** which takes the json output of **domain_scraper2.py** and connects to the MySQL database to create (overwrite) the json file. 
-
+The database setup is performed by **sql_interpreter** which takes the json output of **domain_scraper2.py** and connects to the MySQL database to create (overwrite) the existing json file. Some data cleaning and type conversions are conducted. This needs to be run each time the scraper is run and json updated.
 
 
 ## Part 3: Accessing the SQL database
+The **price_estimator** is the main data analysis script. It accesses the SQL database to obtain the data and uses seaborn for analysis. To access specific column names, i.e. for a SELECT request, the sql values have been saved as **houses_houses.sql**.
 
-The **price_estimator** accesses the SQL database. The desired columns can be obtained, and to find desired column names, see **SQL_TABLE_Values.sql**.
+
+
+
+
+## Old Scripts
+**domain_scraper.py** is a simple version of the later script, only looking at a single page of results from the website.
+
+
+## Setup Scripts
+**sql_setup** simply initialised the local sql database and table which is interacted with in part 2.
+**suburb_postcode_generator** took suburbs and postcodes copied from the internet into **suburbs.txt** and created the more readable json format used in Part 1.

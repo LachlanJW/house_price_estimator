@@ -19,24 +19,15 @@ SQL_PASSWORD = os.getenv("SQL_PW")
 DATABASE_NAME = "houses"
 
 # Create SQL engine
-sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{DATABASE_NAME}"
+sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{DATABASE_NAME}"  # noqa
 engine = create_engine(sql_string)  # Set echo=True to print to console
 
-def get_data_from_sql(table):
-    """Retrieve data from an SQL table"""
-    try:
-        with engine.connect() as conn:
-            sql_query = text(f"SELECT price, `features.beds` FROM {table};")
-            result = conn.execute(sql_query)
-            return result.fetchall()
-    except SQLAlchemyError as e:
-        print(f"An error occurred while fetching data: {e}")
-        return []
+# Query to select all data from the table
+query = "SELECT * FROM houses;"
 
+# Load the data into a DataFrame using Pandas
+df = pd.read_sql(query, con=engine)
 
-# Obtain price and room data from SQL
-data = get_data_from_sql('houses')
-price = [row[0] for row in data]
 
 # Plot the cost of homes
 def cost_distribution(price):
@@ -47,18 +38,18 @@ def cost_distribution(price):
                 aspect=2,
                 color='#2196f3')
 
-    plt.title(f'Recent house prices in Coombs, ACT')
+    plt.title('Recent house prices in Coombs and Wright ACT')
     plt.xlabel('Price ($Million)')
     plt.ylabel(f'Nr. of Homes, total = {len(price)}')
-    plt.xlim(min(price), max(price))  # Adjust x-axis limits based on data range
+    plt.xlim(min(price), max(price))  # Adjust x-axis limits
     plt.ylim(0, )  # Ensure y-axis starts from 0
     plt.margins(0.1)
     plt.tight_layout()
     plt.show()
 
 
-cost_distribution(price)
-
+print(df.columns)
+# cost_distribution(df.price)
 
 # # Plot number of rooms
 # def nr_rooms(rooms, price):
@@ -80,5 +71,3 @@ cost_distribution(price)
 #     filtered_df = df[df[0] != 0]  # exclude apartments with no land
 #     sns.pairplot(filtered_df, kind='reg', plot_kws={'line_kws': {'color': 'cyan'}})
 #     plt.show()
-
-

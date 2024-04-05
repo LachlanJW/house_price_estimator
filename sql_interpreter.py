@@ -28,11 +28,9 @@ def create_table_from_json(data: List[Dict]) -> None:
         df = pd.DataFrame(normalized_data)
 
         # Perform some data cleaning, type conversion etc
-        # First, convert some columns to integer
+        # First, convert some columns to integer, some to float
         int_list = ["id",
                     "address.postcode",
-                    "address.lat",
-                    "address.lng",
                     "features.beds",
                     "features.baths",
                     "features.parking",
@@ -41,10 +39,13 @@ def create_table_from_json(data: List[Dict]) -> None:
         for column in int_list:  # Fill NA values as 0
             df[column] = df[column].fillna(0).astype(int)
 
+        df["address.lat"] = df["address.lat"].fillna(0).astype(float)
+        df["address.lng"] = df["address.lng"].fillna(0).astype(float)
+
         # Then some string parsing
         df['price'] = df['price'].str.replace('$', '').str.replace(',', '')
         df['price'] = df['price'].astype(int)
-        df.loc[df['features.propertyTypeFormatted'] == 'ApartmentUnitFlat',
+        df.loc[df['features.propertyType'] == 'ApartmentUnitFlat',
                'features.propertyType'] = 'Apartment'
 
         # Finally, remove some irrelevant columns

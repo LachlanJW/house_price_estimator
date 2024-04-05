@@ -5,20 +5,50 @@ import os
 import asyncio
 import json
 import jmespath
+import random
 from dotenv import load_dotenv
 from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse  # type: ignore # noqa
 from typing import Dict, List
 from loguru import logger as log
 
 
-# Alter the url provided to reflect the desired suburb, state and postcode
-# Alter the number of pages you want scraped
-URL = ("https://www.domain.com.au/sold-listings/coombs-act-2611/?excludepricewithheld=1") # noqa
-SCRAPE_PAGES = 1
+# Get a suburb from the suburbs_postcodes.json file and do a scrape,
+# Then remove it from the list in order to avoid double-ups
+def pick_and_remove_suburb(json_file):
+    with open(json_file, 'r') as file:
+        suburbs_with_postcodes = json.load(file)
 
-load_dotenv()
+    postcode = random.choice(list(suburbs_with_postcodes.keys()))
+    suburb = random.choice(suburbs_with_postcodes[postcode])
+
+    # Remove the selected suburb from the dictionary
+    suburbs_with_postcodes[postcode].remove(suburb)
+
+    # If the suburb list for the selected postcode becomes empty, remove the postcode
+    if not suburbs_with_postcodes[postcode]:
+        del suburbs_with_postcodes[postcode]
+
+    # Update the JSON file with the modified dictionary
+    with open(json_file, 'w') as file:
+        json.dump(suburbs_with_postcodes, file, indent=4)
+
+    return suburb, postcode
+
+
+json_file = 'suburbs_postcodes.json'
+suburb, postcode = pick_and_remove_suburb(json_file)
+
+
+# Format two letter words for url
+if ' ' in suburb:
+    suburb = suburb.replace(' ', '-')
+
+URL = (f"https://www.domain.com.au/sold-listings/{suburb}-act-{postcode}/?excludepricewithheld=1") # noqa
+SCRAPE_PAGES = 50
+
 
 # Make sure to set a Scrapfly API key in the environ
+load_dotenv()
 SCRAPFLY = ScrapflyClient(key=os.environ["SCRAPFLY_KEY"])
 
 
