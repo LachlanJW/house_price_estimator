@@ -24,7 +24,7 @@ def pick_and_remove_suburb(json_file):
     # Remove the selected suburb from the dictionary
     suburbs_with_postcodes[postcode].remove(suburb)
 
-    # If the suburb list for the selected postcode becomes empty, remove the postcode
+    # If the suburb list for the selected postcode becomes empty, remove
     if not suburbs_with_postcodes[postcode]:
         del suburbs_with_postcodes[postcode]
 
