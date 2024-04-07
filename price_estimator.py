@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns  # type: ignore
 import plotly.express as px  # type: ignore
 from dotenv import load_dotenv
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression  # type: ignore
+from sklearn.model_selection import train_test_split  # type: ignore
 from sqlalchemy import create_engine
 
 
@@ -22,6 +22,24 @@ engine = create_engine(sql_string)  # Set echo=True to print to console
 query = "SELECT * FROM houses;"
 
 df = pd.read_sql(query, con=engine)
+
+
+def clean_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Takes and cleans a pandas dataframe by removing outliers based on price
+    and removing duplicates based on id, returning a new dataframe"""
+
+    # Clean major outliers from the dataset based on price using z score > 3
+    z_scores = (df['price'] - df['price'].mean()) / df['price'].std()
+    outliers = abs(z_scores) > 3
+    cleaned_df = df[~outliers]
+    print(f"Removed {outliers.sum()} outliers based on price")
+
+    # Remove duplicates
+    cleaned_df.drop_duplicates(inplace=True)
+    removed_duplicates = len(df) - len(cleaned_df)
+    print(f"There were {removed_duplicates} duplicates removed")
+
+    return cleaned_df
 
 
 # Plot the cost of homes
@@ -64,9 +82,11 @@ def sold_houses_map(df):
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     fig.show()
 
-# df.info()
-# cost_distribution(df.price)
-# sold_houses_map(df)
+
+cleaned_df = clean_df(df)
+
+cost_distribution(cleaned_df.price)
+# sold_houses_map(cleaned_df)
 # nr_rooms(df['features.beds'], df.price)
 
 
@@ -185,8 +205,8 @@ def log_regression(df):
     log_pred = log_regr.predict(pred_df)[0]
     dollar_pred = np.e**log_pred
     dollar_pred = "{:.0f}".format(dollar_pred)
-    print(f'This property is estimated to be worth ${dollar_pred:.6}')
+    print(f'The specified property is estimated to be worth ${dollar_pred:.6}')
 
 
-# log_regression(df)
-# regression_model(df)
+# log_regression(cleaned_df)
+# regression_model(cleaned_df)

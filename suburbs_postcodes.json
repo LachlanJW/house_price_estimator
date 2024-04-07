@@ -12,6 +12,7 @@
         "Harman",
         "Hmas Harman",
         "Parkes",
+        "Parliament House",
         "Russell",
         "Russell Hill",
         "Yarralumla"
@@ -19,7 +20,8 @@
     "2601": [
         "Acton",
         "Black Mountain",
-        "Canberra"
+        "Canberra",
+        "City"
     ],
     "2602": [
         "Ainslie",
@@ -43,8 +45,7 @@
     ],
     "2605": [
         "Curtin",
-        "Garran",
-        "Hughes"
+        "Garran"
     ],
     "2606": [
         "Chifley",
@@ -62,6 +63,7 @@
         "Torrens"
     ],
     "2609": [
+        "Canberra International Airport",
         "Fyshwick",
         "Pialligo",
         "Symonston"
@@ -149,6 +151,7 @@
         "Monash"
     ],
     "2905": [
+        "Bonython",
         "Calwell",
         "Chisholm",
         "Gilmore",
@@ -175,7 +178,6 @@
     "2914": [
         "Amaroo",
         "Bonner",
-        "Forde",
         "Harrison"
     ]
 }

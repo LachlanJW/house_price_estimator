@@ -8,13 +8,17 @@ import jmespath
 import random
 from dotenv import load_dotenv
 from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse  # type: ignore # noqa
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from loguru import logger as log
 
 
-# Get a suburb from the suburbs_postcodes.json file and do a scrape,
-# Then remove it from the list in order to avoid double-ups
-def pick_and_remove_suburb(json_file):
+def pick_and_remove_suburb(json_file: str = 'suburbs_postcodes.json') -> Tuple:
+    """ Pick a random suburb and its associated postcode from the provided JSON
+    file, remove it from the list to avoid duplicates and update the JSON file.
+    Args: json_file (str), default: suburbs_postcodes.json.
+    Returns: tuple containing suburb and its postcode. """
+
+    # Open the existing json file
     with open(json_file, 'r') as file:
         suburbs_with_postcodes = json.load(file)
 
@@ -35,10 +39,8 @@ def pick_and_remove_suburb(json_file):
     return suburb, postcode
 
 
-json_file = 'suburbs_postcodes.json'
-suburb, postcode = pick_and_remove_suburb(json_file)
-
-
+# Create input URL for scrape
+suburb, postcode = pick_and_remove_suburb()
 # Format two letter words for url
 if ' ' in suburb:
     suburb = suburb.replace(' ', '-')
@@ -47,7 +49,7 @@ URL = (f"https://www.domain.com.au/sold-listings/{suburb}-act-{postcode}/?exclud
 SCRAPE_PAGES = 50
 
 
-# Make sure to set a Scrapfly API key in the environ
+# Load api key, make sure to set a Scrapfly API key in the environ
 load_dotenv()
 SCRAPFLY = ScrapflyClient(key=os.environ["SCRAPFLY_KEY"])
 
@@ -61,7 +63,10 @@ BASE_CONFIG = {
 
 
 def parse_hidden_data(response: ScrapeApiResponse) -> Dict:
-    """Parse json data from script tags"""
+    """ Parse JSON data from script tags in the HTML response.
+    Args: response: Scrapfly API response object.
+    Returns: dict: Parsed JSON data from the response. """
+
     selector = response.selector
     script = selector.xpath("//script[@id='__NEXT_DATA__']/text()").get()
     data = json.loads(script)
@@ -69,7 +74,10 @@ def parse_hidden_data(response: ScrapeApiResponse) -> Dict:
 
 
 def parse_property_page(data: Dict) -> Dict:
-    """Refine property pages data"""
+    """ Refine data extracted from property pages.
+    Args: data (dict): Raw data extracted from the property page.
+    Returns: dict: Refined property data. """
+
     if not data:
         return {}
     result = jmespath.search(
@@ -96,7 +104,10 @@ def parse_property_page(data: Dict) -> Dict:
 
 
 def parse_search_page(data: Dict) -> List[Dict]:
-    """Refine search pages data"""
+    """ Refine data extracted from search result pages.
+    Args: data (dict): raw data extracted from the search result page.
+    Returns: list: refined search result data. """
+
     if not data:
         return [{}]
     data = data["listingsMap"]
@@ -117,7 +128,10 @@ def parse_search_page(data: Dict) -> List[Dict]:
 
 
 async def scrape_properties(urls: List[str]) -> List[Dict]:
-    """Scrape listing data from property pages"""
+    """ Scrape listing data from property pages asynchronously.
+    Args: urls (list): List of URL strings of property pages to scrape.
+    Returns: list of dictionaries containing scraped property data. """
+
     # Add the property page URLs to a scraping list
     to_scrape = [ScrapeConfig(url, **BASE_CONFIG) for url in urls]
     properties = []
@@ -132,7 +146,10 @@ async def scrape_properties(urls: List[str]) -> List[Dict]:
 
 
 async def scrape_search(url: str, max_scrape_pages: int) -> List[Dict]:
-    """Scrape property listings from search pages"""
+    """ Scrape property listings from search pages asynchronously.
+    Args: url (str): URL of the search page to scrape.
+          max_scrape_pages (int): max search result pages to scrape.
+    Returns: list of dictionaries containing property listings. """
 
     first_page = await SCRAPFLY.async_scrape(ScrapeConfig(url, **BASE_CONFIG))
     log.info("scraping search page {}", url)
@@ -151,8 +168,8 @@ async def scrape_search(url: str, max_scrape_pages: int) -> List[Dict]:
     # add the remaining search pages to a scraping list
     other_pages = [
         ScrapeConfig(
-            # add a "?page" parameter at the end of the URL
-            str(first_page.context["url"]) + f"?page={page}",
+            # add a "page" parameter at the end of the URL
+            f"{url}&page={page}",
             **BASE_CONFIG,
         )
         for page in range(2, max_scrape_pages + 1)
@@ -168,6 +185,8 @@ async def scrape_search(url: str, max_scrape_pages: int) -> List[Dict]:
 
 
 async def run():
+    """Asynchronously run the scraping process for domain.com.au."""
+
     print("running Domain.com.au scrape")
     # Use url and page scrape values provided at top of document
     search_data = await scrape_search(url=URL, max_scrape_pages=SCRAPE_PAGES)
