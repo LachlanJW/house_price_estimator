@@ -209,4 +209,4 @@ def log_regression(df):
 
 
 # log_regression(cleaned_df)
-# regression_model(cleaned_df)
+regression_model(cleaned_df)
