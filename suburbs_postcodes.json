@@ -1,13 +1,9 @@
 {
-    "0221": [
-        "Barton"
-    ],
     "2600": [
         "Barton",
         "Canberra",
         "Capital Hill",
         "Deakin",
-        "Duntroon",
         "Fairbairn Raaf",
         "Harman",
         "Hmas Harman",
@@ -34,8 +30,6 @@
     ],
     "2603": [
         "Forrest",
-        "Griffith",
-        "Manuka",
         "Red Hill"
     ],
     "2604": [
@@ -44,20 +38,16 @@
         "Narrabundah"
     ],
     "2605": [
-        "Curtin",
-        "Garran"
+        "Curtin"
     ],
     "2606": [
         "Chifley",
-        "Lyons",
         "O'malley",
-        "Phillip",
         "Swinger Hill",
         "Woden"
     ],
     "2607": [
         "Farrer",
-        "Isaacs",
         "Mawson",
         "Pearce",
         "Torrens"
@@ -79,7 +69,6 @@
         "Holder",
         "Mount Stromlo",
         "Pierces Creek",
-        "Rivett",
         "Stirling",
         "Uriarra",
         "Uriarra",
@@ -91,8 +80,7 @@
     "2612": [
         "Braddon",
         "Campbell",
-        "Reid",
-        "Turner"
+        "Reid"
     ],
     "2614": [
         "Aranda",
@@ -114,7 +102,6 @@
         "Holt",
         "Kippax",
         "Kippax Centre",
-        "Latham",
         "Macgregor",
         "Melba",
         "Spence"
@@ -129,12 +116,7 @@
         "Evatt",
         "Giralang",
         "Kaleen",
-        "Lawson",
         "Mckellar"
-    ],
-    "2900": [
-        "Greenway",
-        "Tuggeranong"
     ],
     "2902": [
         "Kambah"
@@ -151,7 +133,6 @@
     ],
     "2905": [
         "Bonython",
-        "Calwell",
         "Chisholm",
         "Gilmore",
         "Isabella Plains",
@@ -160,7 +141,6 @@
     ],
     "2906": [
         "Banks",
-        "Conder",
         "Gordon"
     ],
     "2911": [
@@ -171,8 +151,7 @@
         "Franklin",
         "Ginninderra Village",
         "Ngunnawal",
-        "Nicholls",
-        "Palmerston"
+        "Nicholls"
     ],
     "2914": [
         "Amaroo",

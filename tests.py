@@ -11,7 +11,6 @@ from domain_scraper_2 import pick_and_remove_suburb, parse_search_page
 
 
 def test_pick_and_remove_suburb():
-    # Sample suburb data for testing
     json_file = "suburbs_postcodes_temp.json"
     suburb_data = {
         "2612": ["Turner", "Acton"],

@@ -11,17 +11,24 @@ from sklearn.model_selection import train_test_split  # type: ignore
 from sqlalchemy import create_engine
 
 
-# SQL Query the database
-load_dotenv()
-SQL_PASSWORD = os.getenv("SQL_PW")
-DATABASE_NAME = "houses"
+# Obtain pandas dataframe from SQL server
+def sql_to_df(table: str = 'houses', db_name: str = 'houses') -> pd.DataFrame:
+    """From a local mysql server take a full table of data and convert
+    to a pandas dataframe.
+    Args: table, db_name.
+    Returns: pandas dataframe"""
+    # Get password from local .env file
+    load_dotenv()
+    SQL_PASSWORD = os.getenv("SQL_PW")
 
-sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{DATABASE_NAME}"  # noqa
-engine = create_engine(sql_string)  # Set echo=True to print to console
+    sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{db_name}"  # noqa
+    engine = create_engine(sql_string)  # Set echo=True to print to console
 
-query = "SELECT * FROM houses;"
+    query = f"SELECT * FROM {table};"
 
-df = pd.read_sql(query, con=engine)
+    df = pd.read_sql(query, con=engine)
+
+    return df
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -61,15 +68,8 @@ def cost_distribution(price):
     plt.show()
 
 
-# Plot number of rooms
-def nr_rooms(rooms, price):
-    df = pd.DataFrame(zip(rooms, price))
-    sns.pairplot(df, kind='reg', plot_kws={'line_kws': {'color': 'cyan'}})
-    plt.show()
-
-
 # Use plotly to create an interactive map and sold houses on top
-def sold_houses_map(df):
+def houses_map(df):
     fig = px.scatter_mapbox(df,
                             lat="address.lat",
                             lon="address.lng",
@@ -83,11 +83,20 @@ def sold_houses_map(df):
     fig.show()
 
 
-cleaned_df = clean_df(df)
-
-cost_distribution(cleaned_df.price)
-# sold_houses_map(cleaned_df)
-# nr_rooms(df['features.beds'], df.price)
+# Use plotly to create an interactive heatmap and sold houses on top
+def houses_heatmap(df):
+    fig = px.density_mapbox(df,
+                            lat="address.lat",
+                            lon="address.lng",
+                            radius=2,
+                            hover_name="price",
+                            hover_data=["price"],
+                            zoom=8,
+                            height=800,
+                            width=800,
+                            mapbox_style="open-street-map")
+    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    fig.show()
 
 
 # =============================================================================
@@ -206,7 +215,3 @@ def log_regression(df):
     dollar_pred = np.e**log_pred
     dollar_pred = "{:.0f}".format(dollar_pred)
     print(f'The specified property is estimated to be worth ${dollar_pred:.6}')
-
-
-# log_regression(cleaned_df)
-regression_model(cleaned_df)

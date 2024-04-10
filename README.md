@@ -1,6 +1,6 @@
 # House Price Estimator
 This is a project designed for practice in scraping, data handling and SQL. There are many inefficiencies (conversion of a dataframe to SQL and back) simply conducted for practise.
-Scraping from the domain.com website should be conducted at slow rates, of publicly available data in small quantities that are not for sale.
+Scraping from the domain.com website should be conducted at slow rates, of publicly available data, in small quantities.
 
 ## Part 1: Obtaining house price data
 The first portion of this project deals with obtaining house price data from domain.com.au using the scrapfly API. The central script, **domain_scraper2.py** searches through result pages in a given postcode for the listing data and creates a **data.json** file of the output. Each time the script is run, output is appended to this file. The **suburbs_postcodes.json** keeps track of which suburbs have been added to avoid double-ups.

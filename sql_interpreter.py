@@ -6,21 +6,12 @@ import os
 import json
 from dotenv import load_dotenv
 import pandas as pd  # type: ignore
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
-from typing import Dict, List, Sequence
-
-# Load environment variables
-load_dotenv()
-SQL_PASSWORD = os.getenv("SQL_PW")
-DATABASE_NAME = "houses"
-
-# Create SQL engine
-sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{DATABASE_NAME}"  # noqa
-engine = create_engine(sql_string)  # Set echo=True to print to console
+from typing import Dict, List
 
 
-def create_table_from_json(data: List[Dict], table: str = 'houses') -> None:
+def create_table_from_json(engine, data: List[Dict], table: str) -> None:
     """Create an SQL table from JSON data.
     Args: List[Dict] given from json.load.
     Returns: None. The data is written to a local sql table"""
@@ -73,19 +64,15 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_data_from_sql(table: str) -> Sequence:
-    """Retrieve data from an SQL table"""
-    try:
-        with engine.connect() as conn:
-            sql_query = text(f"SELECT * FROM {table};")
-            result = conn.execute(sql_query)
-            return result.fetchall()
-    except SQLAlchemyError as e:
-        print(f"An error occurred while fetching data: {e}")
-        return []
+def run(db: str = 'houses', table: str = 'houses'):
+    # Load environment variables
+    load_dotenv()
+    SQL_PASSWORD = os.getenv("SQL_PW")
+    DATABASE_NAME = db
 
-
-def main():
+    # Create SQL engine
+    sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{DATABASE_NAME}"  # noqa
+    engine = create_engine(sql_string)  # Set echo=True to print to console
     # Read test data from JSON file
     try:
         with open("data.json", 'r') as file:
@@ -95,8 +82,8 @@ def main():
         return
 
     # Create SQL table from JSON data
-    create_table_from_json(test_data)
+    create_table_from_json(engine=engine, data=test_data, table=table)
 
 
 if __name__ == "__main__":
-    main()
+    run()
