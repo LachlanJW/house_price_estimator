@@ -15,7 +15,6 @@
     ],
     "2601": [
         "Acton",
-        "Black Mountain",
         "Canberra",
         "City"
     ],
@@ -25,15 +24,12 @@
         "Downer",
         "Hackett",
         "Lyneham",
-        "O'connor",
-        "Watson"
+        "O'connor"
     ],
     "2603": [
-        "Forrest",
-        "Red Hill"
+        "Forrest"
     ],
     "2604": [
-        "Causeway",
         "Kingston",
         "Narrabundah"
     ],
@@ -48,8 +44,6 @@
     ],
     "2607": [
         "Farrer",
-        "Mawson",
-        "Pearce",
         "Torrens"
     ],
     "2609": [
@@ -86,7 +80,6 @@
         "Aranda",
         "Cook",
         "Hawker",
-        "Jamison Centre",
         "Macquarie",
         "Page",
         "Scullin",
@@ -118,11 +111,7 @@
         "Kaleen",
         "Mckellar"
     ],
-    "2902": [
-        "Kambah"
-    ],
     "2903": [
-        "Erindale Centre",
         "Oxley"
     ],
     "2904": [
@@ -150,12 +139,10 @@
     "2913": [
         "Franklin",
         "Ginninderra Village",
-        "Ngunnawal",
-        "Nicholls"
+        "Ngunnawal"
     ],
     "2914": [
         "Amaroo",
-        "Bonner",
         "Harrison"
     ]
 }

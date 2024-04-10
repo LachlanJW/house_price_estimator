@@ -46,7 +46,7 @@ if ' ' in suburb:
     suburb = suburb.replace(' ', '-')
 
 URL = (f"https://www.domain.com.au/sold-listings/{suburb}-act-{postcode}/?excludepricewithheld=1") # noqa
-SCRAPE_PAGES = 50
+SCRAPE_PAGES = 2
 
 
 # Load api key, make sure to set a Scrapfly API key in the environ
