@@ -1,7 +1,6 @@
 import domain_scraper_2  # noqa
 import sql_interpreter  # noqa
 import price_estimator as pe  # noqa
-
 import asyncio  # noqa
 
 # Set global variables
