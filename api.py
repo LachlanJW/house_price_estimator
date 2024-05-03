@@ -1,9 +1,9 @@
 import requests
 
-response = requests.get("http://localhost:8000/houses/")
+response = requests.get("http://127.0.0.1:8000")
 
 try:
-    response = requests.get("http://localhost:8000/houses/")
+    response = requests.get("http://127.0.0.1:8000")
     if response.status_code == 200:
         # Extract the JSON data from the response
         houses_data = response.json()

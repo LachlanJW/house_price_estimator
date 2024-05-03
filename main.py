@@ -10,7 +10,7 @@ SQL_TABLE = 'houses'
 # ------------------- Scrape data and write to sql table -------------------- #
 
 # Scrape 1000 entries from domain.com and write to json file
-# asyncio.run(domain_scraper_2.run())
+asyncio.run(domain_scraper_2.run())
 
 # Update the local MySQL server and save data to sql table.
 # Note that the mysql server must be created already, and SQL_PW set in .env.

@@ -57,4 +57,6 @@ def get_houses():
 if __name__ == "__main__":
     # Create the table
     Base.metadata.create_all(engine)
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("restAPI:app", host="0.0.0.0",
+                port=int(os.environ.get("PORT", 8000)))
+
