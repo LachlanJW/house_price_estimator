@@ -12,7 +12,7 @@ from typing import Dict, List, Tuple
 from loguru import logger as log
 
 
-def pick_and_remove_suburb(json_file: str = 'suburbs_postcodes.json') -> Tuple:
+def pick_and_remove_suburb(json_file: str = 'ReferenceData/suburbs_postcodes.json') -> Tuple:
     """ Pick a random suburb and its associated postcode from the provided JSON
     file, remove it from the list to avoid duplicates and update the JSON file.
     Args: json_file (str), default: suburbs_postcodes.json.
@@ -46,7 +46,7 @@ if ' ' in suburb:
     suburb = suburb.replace(' ', '-')
 
 URL = (f"https://www.domain.com.au/sold-listings/{suburb}-act-{postcode}/?excludepricewithheld=1") # noqa
-SCRAPE_PAGES = 50
+SCRAPE_PAGES = 40
 
 
 # Load api key, make sure to set a Scrapfly API key in the environ
