@@ -1,5 +1,5 @@
 import domain_scraper_2  # noqa
-import sql_interpreter  # noqa
+import sql_interpreter as si # noqa
 import price_estimator as pe
 
 # Set global variables
@@ -21,7 +21,7 @@ SQL_TABLE = 'houses'
 
 
 # ------------------------- Data Visualisation ------------------------------ #
-df = pe.sql_to_df(table=SQL_TABLE, db_name=SQL_DATABASE)
+df = si.sql_query(table=SQL_TABLE, db_name=SQL_DATABASE)
 df = pe.clean_df(df)
 
 # General global analysis

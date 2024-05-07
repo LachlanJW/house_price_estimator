@@ -10,25 +10,7 @@ from sklearn.linear_model import LinearRegression  # type: ignore
 from sklearn.model_selection import train_test_split  # type: ignore
 from sqlalchemy import create_engine
 
-
-# Obtain pandas dataframe from SQL server
-def sql_to_df(table: str = 'houses', db_name: str = 'houses') -> pd.DataFrame:
-    """From a local mysql server take a full table of data and convert
-    to a pandas dataframe.
-    Args: table, db_name.
-    Returns: pandas dataframe"""
-    # Get password from local .env file
-    load_dotenv()
-    SQL_PASSWORD = os.getenv("SQL_PW")
-
-    sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{db_name}"  # noqa
-    engine = create_engine(sql_string)  # Set echo=True to print to console
-
-    query = f"SELECT * FROM {table};"
-
-    df = pd.read_sql(query, con=engine)
-
-    return df
+from sql_interpreter import sql_query
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:
