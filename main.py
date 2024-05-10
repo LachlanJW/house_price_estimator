@@ -1,22 +1,30 @@
-import domain_scraper_2  # noqa
+import domain_scraper_2 as ds2  # noqa
 import sql_interpreter as si # noqa
-import price_estimator as pe
+import price_estimator as pe  # noqa
+import suburbscores as s_score  # noqa
+import asyncio  # noqa
 
 # Set global variables
 SQL_DATABASE = 'houses'
 SQL_TABLE = 'houses'
 
-# ------------------- Scrape data and write to sql table -------------------- #
+# ----------------------------- Scraping ------------------------------------ #
 
-# Scrape 1000 entries from domain.com and write to json file
-asyncio.run(domain_scraper_2.run())
+# Run this line to add another suburb to the data.json file
+# by scraping domain.com. Note: the sql server will not automatically update.
+# asyncio.run(ds2.run())
 
-# Update the local MySQL server and save data to sql table.
+
+# ---------------------------- SQL Writing ---------------------------------- #
+
+# Run this line to update the local MySQL server and save data to sql table.
 # Note that the mysql server must be created already, and SQL_PW set in .env.
-# sql_interpreter.run(table=SQL_TABLE, db=SQL_DATABASE)
+# si.run(table=SQL_TABLE, db=SQL_DATABASE)
 
-# ------------------------- Data Visualisation ------------------------------ #
-df = si.sql_query(table=SQL_TABLE, db_name=SQL_DATABASE)
+
+# ------------------------- Add Suburb Data   ------------------------------- #
+df = pe.sql_query()  # Get database from SQL server
+df = s_score.run(houses_df=df)  # Add suburb database into existing one
 df = pe.clean_df(df)
 
 # General global analysis
@@ -24,6 +32,6 @@ df = pe.clean_df(df)
 # pe.houses_map(df)  # Scatter map of ACT with locations of all sold houses
 # pe.houses_heatmap(df)  # House map with density plot
 
-# # Regression models of price based on beds, baths, and parking
-# # pe.regression_model(df)
+# Regression models of price based on beds, baths, and parking
+# pe.regression_model(df)
 # pe.log_regression(df)

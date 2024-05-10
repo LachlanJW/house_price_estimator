@@ -1,22 +1,37 @@
 import pandas as pd
-from functools import reduce
-
-import os
-
-import pandas as pd  # type: ignore
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns  # type: ignore
-import plotly.express as px  # type: ignore
-from dotenv import load_dotenv
+
 from sklearn.linear_model import LinearRegression  # type: ignore
-from sklearn.model_selection import train_test_split  # type: ignore
-from sqlalchemy import create_engine
-
 from price_estimator import sql_query
+from functools import reduce
+from geopy.geocoders import Nominatim  # type: ignore
+from geopy.distance import geodesic  # type: ignore
+from loguru import logger as log
 
-from geopy.geocoders import Nominatim
-from geopy.distance import geodesic
+
+# =============================================================================
+#                                Crime Stats
+# =============================================================================
+
+
+def crime_db() -> pd.DataFrame:
+    # Create a dataframe of crime by suburb
+    with open('ReferenceData/suburbcrime.csv', 'r') as file:
+        data = file.readlines()
+        # Convert the list of strings into a list of tuples
+        suburbs_data = [tuple(suburb.strip().replace('(ACT)', '').split(','))[:-1] for suburb in data]  # noqa
+
+        # Create a DataFrame from the list of tuples
+        df = pd.DataFrame(suburbs_data, columns=['Suburb',
+                                                 'Rating',
+                                                 'Incidents'])
+        print(df)
+        return df
+
+
+# =============================================================================
+#                              Education Stats
+# =============================================================================
 
 
 def clean_df(df: pd.DataFrame, yr: int) -> pd.DataFrame:
@@ -121,15 +136,16 @@ def school_address(df: pd.DataFrame) -> pd.DataFrame:
 
 def find_closest_school(house_lat: float, house_lon: float,
                         schools_df: pd.DataFrame) -> int:
-    """Find the closest school to a given house based on its latitude and longitude.
-    Return its 2024 predicted ATAR."""
+    """Find the closest school to a given house based on its
+    latitude and longitude. Return its 2024 predicted ATAR."""
     closest_distance = float('inf')
     closest_school_atar = None
 
     for _, school in schools_df.iterrows():
         school_lat = school['Lat']
         school_lon = school['Lon']
-        distance = geodesic((house_lat, house_lon), (school_lat, school_lon)).kilometers
+        distance = geodesic((house_lat, house_lon),
+                            (school_lat, school_lon)).kilometers
         if distance < closest_distance:
             closest_distance = distance
             closest_school_atar = school['2024_ATAR']
@@ -137,33 +153,49 @@ def find_closest_school(house_lat: float, house_lon: float,
     return closest_school_atar
 
 
-def add_closest_school_atar(houses_df, schools_df):
-    """Add the closest school's ATAR value to each house in the houses DataFrame."""
-    # Create a new column in houses_df to store the closest school's ATAR
+def update_dataframe(houses_df, schools_df, crime_df):
+    """Add the closest school's ATAR, and crime score
+    to each house in the houses DataFrame."""
+    # Create new columns in houses_df to store values
     houses_df['edu_score'] = None
+    houses_df['crime_score'] = None
 
     # Iterate over each house in houses_df
     for index, house in houses_df.iterrows():
+        # Add score for closest school
         house_lat = house["address.lat"]
         house_lon = house["address.lng"]
         edu_score = find_closest_school(house_lat, house_lon, schools_df)
         houses_df.at[index, 'edu_score'] = edu_score
-
+        # Add score for suburb crime
+        suburb = house["address.suburb"]
+        try:
+            rating = crime_df.loc[crime_df['Suburb'].str.lower() == suburb.lower(), 'Rating'].values[0]
+        # If suburb does not have crime stats
+        except IndexError:
+            log.error(f"issue with {suburb}")
+        houses_df.at[index, 'crime_score'] = rating
+    log.success("Updated dataframe")
     return houses_df
 
 
 def run(houses_df):
-    """Take the existing houses database and include education score"""
+    """Take the existing houses database and includes
+    education and crime scores"""
+    # Make education score database
     school_df = predict_results(school_atars())
+    school_df = school_address(school_df)  # Add the latitude and longitude
 
-    # Add the latitude and longitude of the schools to the dataframe
-    school_df = school_address(school_df)
+    # Make crime database
+    crime_df = crime_db()
 
-    # Check the closest school to each house,
-    # and assign the house an education score of that schools 2024 ATAR
-    houses_df = add_closest_school_atar(houses_df=houses_df, schools_df=school_df)
+    # Update values in the hosues df
+    houses_df = update_dataframe(houses_df=houses_df,
+                                 schools_df=school_df,
+                                 crime_df=crime_df)
 
     return houses_df
+
 
 if __name__ == "__main__":
     run(houses_df=sql_query())
