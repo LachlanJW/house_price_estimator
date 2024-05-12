@@ -125,8 +125,10 @@ def school_address(df: pd.DataFrame) -> pd.DataFrame:
 
     for school in df['College']:
         # Get location for the school
-        location = geolocator.geocode(school)
-
+        try:
+            location = geolocator.geocode(school)
+        except:
+            print(f"Failed to find {school}")
         # Update 'Lat' and 'Long' columns with the returned values
         df.loc[df['College'] == school, 'Lat'] = location.latitude
         df.loc[df['College'] == school, 'Lon'] = location.longitude
@@ -167,13 +169,32 @@ def update_dataframe(houses_df, schools_df, crime_df):
         house_lon = house["address.lng"]
         edu_score = find_closest_school(house_lat, house_lon, schools_df)
         houses_df.at[index, 'edu_score'] = edu_score
+        
         # Add score for suburb crime
         suburb = house["address.suburb"]
         try:
-            rating = crime_df.loc[crime_df['Suburb'].str.lower() == suburb.lower(), 'Rating'].values[0]
+            rating = crime_df.loc[
+                crime_df['Suburb'].str.lower() == suburb.lower(),
+                'Rating'
+            ].values[0]
+ 
         # If suburb does not have crime stats
         except IndexError:
             log.error(f"issue with {suburb}")
+            # Find a nearby house from a different suburb and use that number
+            for index2, house2 in houses_df.iterrows():
+                house2_lat = house2["address.lat"]
+                house2_lon = house2["address.lng"]
+                distance = geodesic((house_lat, house_lon),
+                                    (house2_lat, house2_lon)).kilometers
+                suburb2 = house2["address.suburb"]
+                if distance < 1 and suburb2 != suburb:
+                    rating = crime_df.loc[
+                                    crime_df['Suburb'].str.lower() == suburb2.lower(),
+                                    'Rating'
+                                ].values[0]
+                    return rating
+        # Update houses df with correct crime rating
         houses_df.at[index, 'crime_score'] = rating
     log.success("Updated dataframe")
     return houses_df
