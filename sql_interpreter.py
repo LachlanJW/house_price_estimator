@@ -83,6 +83,20 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def write_to_sql(df: pd.DataFrame, db_name: str = 'houses'):
+    """Write a pandas DataFrame to a SQL server.
+    Args: df: pandas DataFrame to be written, db_name: name of the database."""
+    # Get password from local .env file
+    load_dotenv()
+    SQL_PASSWORD = os.getenv("SQL_PW")
+
+    sql_string = f"mysql+mysqlconnector://root:{SQL_PASSWORD}@localhost:3306/{db_name}"  # noqa
+    engine = create_engine(sql_string)
+
+    # Write DataFrame to SQL server, overwriting the existing table
+    df.to_sql('houses', con=engine, if_exists='replace', index=False)
+
+
 def run(db: str = 'houses', table: str = 'houses'):
     # Load environment variables
     load_dotenv()

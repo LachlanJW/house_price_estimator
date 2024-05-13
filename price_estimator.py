@@ -13,24 +13,6 @@ from sqlalchemy import create_engine
 from sql_interpreter import sql_query
 
 
-def clean_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Takes and cleans a pandas dataframe by removing outliers based on price
-    and removing duplicates based on id, returning a new dataframe"""
-
-    # Clean major outliers from the dataset based on price using z score > 3
-    z_scores = (df['price'] - df['price'].mean()) / df['price'].std()
-    outliers = abs(z_scores) > 3
-    cleaned_df = df[~outliers]
-    print(f"Removed {outliers.sum()} outliers based on price")
-
-    # Remove duplicates
-    cleaned_df.drop_duplicates(inplace=True)
-    removed_duplicates = len(df) - len(cleaned_df)
-    print(f"There were {removed_duplicates} duplicates removed")
-
-    return cleaned_df
-
-
 # Plot the cost of homes
 def cost_distribution(price):
 
@@ -89,7 +71,9 @@ def regression_model(df):
     target = df['price']
     features = df.loc[:, ['features.beds',
                           'features.baths',
-                          'features.parking']]
+                          'features.parking',
+                          'crime_score',
+                          'edu_score']]
 
     # Split data into training and testing
     X_train, X_test, y_train, y_test = train_test_split(features,
@@ -147,7 +131,9 @@ def log_regression(df):
     new_target = np.log(df['price'])  # Use log prices
     features = df.loc[:, ['features.beds',
                           'features.baths',
-                          'features.parking']]
+                          'features.parking',
+                          'crime_score',
+                          'edu_score']]
 
     X_train, X_test, log_y_train, log_y_test = train_test_split(features,
                                                                 new_target,
@@ -191,7 +177,9 @@ def log_regression(df):
     # Make an estimate for a specific property
     input_features = {'features.beds': 4,
                       'features.baths': 2,
-                      'features.parking': 2}
+                      'features.parking': 2,
+                      'crime_score': 45,
+                      'edu_score':35}
     pred_df = pd.DataFrame(input_features, index=['index_label'])
     log_pred = log_regr.predict(pred_df)[0]
     dollar_pred = np.e**log_pred

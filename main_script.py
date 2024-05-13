@@ -1,5 +1,5 @@
 import domain_scraper_2 as ds2  # noqa
-import sql_interpreter as si # noqa
+import sql_interpreter as si
 import price_estimator as pe  # noqa
 import suburbscores as s_score  # noqa
 import asyncio  # noqa
@@ -23,15 +23,16 @@ SQL_TABLE = 'houses'
 
 
 # ------------------------- Add Suburb Data   ------------------------------- #
-df = pe.sql_query()  # Get database from SQL server
-df = s_score.run(houses_df=df)  # Add suburb database into existing one
-df = pe.clean_df(df)
+df = si.sql_query()  # Get database from SQL server
+# df = s_score.run(houses_df=df)  # Add suburb database into existing one
 
-# General global analysis
+
+# ------------------------- Analysis   ------------------------------- #
+# # General global analysis
 # pe.cost_distribution(df.price)  # Frequency distribution of all prices
 # pe.houses_map(df)  # Scatter map of ACT with locations of all sold houses
 # pe.houses_heatmap(df)  # House map with density plot
 
 # Regression models of price based on beds, baths, and parking
 # pe.regression_model(df)
-# pe.log_regression(df)
+pe.log_regression(df)

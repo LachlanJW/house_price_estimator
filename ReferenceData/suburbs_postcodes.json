@@ -4,10 +4,8 @@
         "Canberra",
         "Capital Hill",
         "Deakin",
-        "Fairbairn Raaf",
         "Harman",
         "Hmas Harman",
-        "Parkes",
         "Parliament House",
         "Russell",
         "Russell Hill",
@@ -24,17 +22,10 @@
         "O'connor"
     ],
     "2606": [
-        "O'malley",
-        "Swinger Hill",
         "Woden"
     ],
-    "2607": [
-        "Torrens"
-    ],
     "2609": [
-        "Canberra International Airport",
         "Fyshwick",
-        "Pialligo",
         "Symonston"
     ],
     "2611": [
@@ -42,31 +33,20 @@
         "Chapman",
         "Duffy",
         "Fisher",
-        "Holder",
         "Mount Stromlo",
         "Pierces Creek",
         "Stirling",
         "Uriarra",
         "Uriarra",
         "Uriarra Forest",
-        "Waramanga",
-        "Weston",
         "Weston Creek"
     ],
-    "2612": [
-        "Braddon"
-    ],
     "2614": [
-        "Aranda",
         "Cook",
-        "Hawker",
-        "Macquarie",
-        "Page",
-        "Scullin"
+        "Hawker"
     ],
     "2615": [
         "Charnwood",
-        "Dunlop",
         "Florey",
         "Flynn",
         "Fraser",
@@ -81,26 +61,18 @@
     "2617": [
         "Belconnen",
         "Belconnen Dc",
-        "Bruce",
         "Evatt",
         "Giralang",
-        "Kaleen",
-        "Mckellar"
+        "Kaleen"
     ],
     "2903": [
         "Oxley"
-    ],
-    "2904": [
-        "Fadden",
-        "Gowrie",
-        "Monash"
     ],
     "2905": [
         "Bonython",
         "Gilmore",
         "Isabella Plains",
-        "Richardson",
-        "Theodore"
+        "Richardson"
     ],
     "2906": [
         "Banks",
@@ -111,8 +83,6 @@
         "Mitchell"
     ],
     "2913": [
-        "Franklin",
-        "Ginninderra Village",
         "Ngunnawal"
     ],
     "2914": [

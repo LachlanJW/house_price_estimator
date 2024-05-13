@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from sklearn.linear_model import LinearRegression  # type: ignore
-from price_estimator import sql_query
+from sql_interpreter import write_to_sql, sql_query
 from functools import reduce
 from geopy.geocoders import Nominatim  # type: ignore
 from geopy.distance import geodesic  # type: ignore
@@ -25,7 +25,6 @@ def crime_db() -> pd.DataFrame:
         df = pd.DataFrame(suburbs_data, columns=['Suburb',
                                                  'Rating',
                                                  'Incidents'])
-        print(df)
         return df
 
 
@@ -34,7 +33,7 @@ def crime_db() -> pd.DataFrame:
 # =============================================================================
 
 
-def clean_df(df: pd.DataFrame, yr: int) -> pd.DataFrame:
+def clean_ed_df(df: pd.DataFrame, yr: int) -> pd.DataFrame:
     '''For tables on the bettereducation website, drop irrelevant columns,
     convert numbers to numeric types, and deal with incorrect values.
     Args: pd. Dataframe, yr: int of the year. Returns: pd.Dataframe'''
@@ -79,7 +78,7 @@ def school_atars() -> pd.DataFrame:
         url = f"https://bettereducation.com.au/results/ACT.aspx?yr={yr}"
 
         df = scrape_table(url)
-        df = clean_df(df, yr)
+        df = clean_ed_df(df, yr)
         dataframes.append(df)
     # Merge the dataframes based on the school column
     merged_df = reduce(lambda left, right: pd.merge(left,
@@ -169,7 +168,7 @@ def update_dataframe(houses_df, schools_df, crime_df):
         house_lon = house["address.lng"]
         edu_score = find_closest_school(house_lat, house_lon, schools_df)
         houses_df.at[index, 'edu_score'] = edu_score
-        
+
         # Add score for suburb crime
         suburb = house["address.suburb"]
         try:
@@ -177,10 +176,9 @@ def update_dataframe(houses_df, schools_df, crime_df):
                 crime_df['Suburb'].str.lower() == suburb.lower(),
                 'Rating'
             ].values[0]
- 
+
         # If suburb does not have crime stats
         except IndexError:
-            log.error(f"issue with {suburb}")
             # Find a nearby house from a different suburb and use that number
             for index2, house2 in houses_df.iterrows():
                 house2_lat = house2["address.lat"]
@@ -193,16 +191,31 @@ def update_dataframe(houses_df, schools_df, crime_df):
                                     crime_df['Suburb'].str.lower() == suburb2.lower(),
                                     'Rating'
                                 ].values[0]
-                    return rating
         # Update houses df with correct crime rating
-        houses_df.at[index, 'crime_score'] = rating
+        houses_df.at[index, 'crime_score'] = int(rating)
     log.success("Updated dataframe")
     return houses_df
+
+
+def clean_df(df: pd.DataFrame) -> pd.DataFrame:
+    # Clean major outliers from the dataset based on price using z score > 3
+    z_scores = (df['price'] - df['price'].mean()) / df['price'].std()
+    outliers = abs(z_scores) > 3
+    cleaned_df = df[~outliers]
+    print(f"Removed {outliers.sum()} outliers")
+
+    # Remove duplicates
+    cleaned_df.drop_duplicates(inplace=True)
+    removed_duplicates = len(df) - len(cleaned_df)
+    print(f"There were {removed_duplicates} duplicates removed")
+    return cleaned_df
 
 
 def run(houses_df):
     """Take the existing houses database and includes
     education and crime scores"""
+    log.success("Adding crime stats")
+
     # Make education score database
     school_df = predict_results(school_atars())
     school_df = school_address(school_df)  # Add the latitude and longitude
@@ -214,7 +227,10 @@ def run(houses_df):
     houses_df = update_dataframe(houses_df=houses_df,
                                  schools_df=school_df,
                                  crime_df=crime_df)
-
+    cleaned_df = clean_df(houses_df)
+    # Overwrite database with new data
+    write_to_sql(cleaned_df)
+    log.success("Crime stats added to db")
     return houses_df
 
 
