@@ -14,19 +14,29 @@ from loguru import logger as log
 # =============================================================================
 
 
-def load_crime_data(
-        filepath: str = 'ReferenceData/suburbcrime.csv'
-        ) -> pd.DataFrame:
+def load_crime_data() -> pd.DataFrame:
     """
     Load crime data from a CSV file and return a DataFrame.
     Args:
-        filepath (str).
+        None.
     Returns:
         pd.DataFrame: Crime data.
     """
-    data = pd.read_csv(filepath, usecols=['Suburb', 'Rating', 'Incidents'])
-    data['Suburb'] = data['Suburb'].str.replace('(ACT)', '').str.strip()
-    return data
+    # Create a dataframe of crime by suburb
+    with open('ReferenceData/suburbcrime.csv', 'r') as file:
+        data = file.readlines()
+        # Convert the list of strings into a list of tuples
+        suburbs_data = [
+            tuple(suburb.strip().replace('(ACT)', '').split(','))[:-1]
+            for suburb in data
+            ]
+
+        # Create a DataFrame from the list of tuples
+        df = pd.DataFrame(suburbs_data, columns=['Suburb',
+                                                 'Rating',
+                                                 'Incidents'])
+
+        return df
 
 
 # =============================================================================
