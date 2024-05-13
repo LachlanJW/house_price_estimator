@@ -14,18 +14,19 @@ from loguru import logger as log
 # =============================================================================
 
 
-def crime_db() -> pd.DataFrame:
-    # Create a dataframe of crime by suburb
-    with open('ReferenceData/suburbcrime.csv', 'r') as file:
-        data = file.readlines()
-        # Convert the list of strings into a list of tuples
-        suburbs_data = [tuple(suburb.strip().replace('(ACT)', '').split(','))[:-1] for suburb in data]  # noqa
-
-        # Create a DataFrame from the list of tuples
-        df = pd.DataFrame(suburbs_data, columns=['Suburb',
-                                                 'Rating',
-                                                 'Incidents'])
-        return df
+def load_crime_data(
+        filepath: str = 'ReferenceData/suburbcrime.csv'
+        ) -> pd.DataFrame:
+    """
+    Load crime data from a CSV file and return a DataFrame.
+    Args:
+        filepath (str).
+    Returns:
+        pd.DataFrame: Crime data.
+    """
+    data = pd.read_csv(filepath, usecols=['Suburb', 'Rating', 'Incidents'])
+    data['Suburb'] = data['Suburb'].str.replace('(ACT)', '').str.strip()
+    return data
 
 
 # =============================================================================
@@ -33,206 +34,218 @@ def crime_db() -> pd.DataFrame:
 # =============================================================================
 
 
-def clean_ed_df(df: pd.DataFrame, yr: int) -> pd.DataFrame:
-    '''For tables on the bettereducation website, drop irrelevant columns,
-    convert numbers to numeric types, and deal with incorrect values.
-    Args: pd. Dataframe, yr: int of the year. Returns: pd.Dataframe'''
-    # Drop first two columns
+def clean_education_data(df: pd.DataFrame, year: int) -> pd.DataFrame:
+    """
+    Clean and format education data.
+    Args:
+        df (pd.DataFrame): Raw education data.
+        year (int): Year to iterate through columns.
+    Returns:
+        pd.DataFrame.
+    """
+    # Take and rename relevant columns
     df = df.drop(df.columns[[0, 1]], axis=1)
-    # Rename columns
-    df = df.rename(columns={'Median ATAR': f'Median ATAR ({yr})',
-                            'ATAR >= 65': f'ATAR >= 65 ({yr})'})
+    df = df.rename(columns={'Median ATAR': f'Median ATAR ({year})',
+                            'ATAR >= 65': f'ATAR >= 65 ({year})'})
 
-    # Clean some of the data in the final column which varies by year
-    # Convert the column to numeric
-    col = f'ATAR >= 65 ({yr})'
-    df[col] = pd.to_numeric(df[col].str.rstrip('%').str.replace(',', ''))
-    # If the column is larger than 100, divide by 100
-    df.loc[df[col] > 100, col] = (df.loc[df[col] > 100, col] / 100)
-    # Convert all values to int
-    df[col] = df[col].astype(int)
+    # Final column has varying entries which require cleaning and conversion
+    col = f'ATAR >= 65 ({year})'
+    # Convert string to numeric
+    df[col] = pd.to_numeric(df[col].str.rstrip('%').str.replace(',', ''),
+                            errors='coerce')
+    # If the column is over 100% divide by 100 to handle wierd entries
+    df[col] = np.where(df[col] > 100, df[col] / 100, df[col]).astype(int)
 
-    # Convert the median ATAR column to float
-    col1 = f'Median ATAR ({yr})'
-    df[col1] = df[col1].astype(int)
+    # Convert median ATAR column to int
+    col1 = f'Median ATAR ({year})'
+    df[col1] = pd.to_numeric(df[col1], errors='coerce').fillna(0).astype(int)
 
     return df
 
 
 def scrape_table(url: str) -> pd.DataFrame:
-    '''Obtains the first table in a given url and returns a dataframe'''
-    # Read HTML tables from the webpage
-    tables = pd.read_html(url)
-
-    # Assuming the first table contains the desired data
-    return tables[0]
+    return pd.read_html(url)[0]
 
 
-def school_atars() -> pd.DataFrame:
-    '''Return a single dataframe of each college in ACT and its ATAR results
-    from 2008 to 2018'''
-    # Move through the available years of data and create a list of dataframes
-    dataframes = []
-    for yr in range(2008, 2019):
-        # URL of the website to scrape
-        url = f"https://bettereducation.com.au/results/ACT.aspx?yr={yr}"
-
-        df = scrape_table(url)
-        df = clean_ed_df(df, yr)
-        dataframes.append(df)
-    # Merge the dataframes based on the school column
-    merged_df = reduce(lambda left, right: pd.merge(left,
-                                                    right,
-                                                    on='College'), dataframes)
+def compile_school_atars() -> pd.DataFrame:
+    """
+    Compile ATAR data for all schools in the ACT from 2008 to 2018.
+    Returns:
+        pd.DataFrame: DataFrame containing compiled ATAR data.
+    """
+    # Make a list of dataframes from the webpage of each years results
+    base_url = "https://bettereducation.com.au/results/ACT.aspx?yr="
+    dataframes = [
+        clean_education_data(scrape_table(f"{base_url}{yr}"), yr)
+        for yr in range(2008, 2019)
+    ]
+    # Merge into a single dataframe
+    merged_df = reduce(lambda left, right: pd.merge(left, right, on='College'),
+                       dataframes)
     return merged_df
 
 
-def predict_results(df: pd.DataFrame) -> pd.DataFrame:
-    '''Performs a linear regression model on school ATAR history
-    to predict scores for 2024'''
-    # Add new df column to receive 2024 ATAR prediction
+def predict_atar_results(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Predict 2024 ATAR scores using linear regression with historical data.
+    Args:
+        df (pd.DataFrame): Historical ATAR data.
+    Returns:
+        pd.DataFrame: With added 2024 ATAR predictions.
+    """
     df['2024_ATAR'] = None
-
-    # Create regression object
     regr = LinearRegression()
 
-    # Iterate over the rows of the DataFrame
     for index, row in df.iterrows():
-        # Get ATAR results for the current school
+        # Make a list of atars for the available year range (2008 to 2018)
         atar_values = [row[f'Median ATAR ({yr})'] for yr in range(2008, 2019)]
+        # Make a list of the years for regression model
         years = np.arange(2008, 2019).reshape(-1, 1)
-
-        # Fit a model to the ATAR data
+        # Fit model
         regr.fit(years, atar_values)
-
-        # Predict the 2024 ATAR and add to the DataFrame
-        predicted_atar_2024 = int(regr.predict([[2024]])[0])
-        df.at[index, '2024_ATAR'] = predicted_atar_2024
+        # Predict atar and add to the 2024_ATAR column of the dataframe
+        predicted_ATAR = int(regr.predict([[2024]])[0])
+        df.at[index, '2024_ATAR'] = predicted_ATAR
 
     return df
 
 
-def school_address(df: pd.DataFrame) -> pd.DataFrame:
-    '''Uses google geopy to search school names for a latitude and longitude,
-    and adds these as columns to the dataframe'''
-    # Create new columns to receive lat and lon data
+def add_school_coordinates(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add latitude and longitude coordinates to schools using geopy.
+    Args:
+        df (pd.DataFrame): School data.
+    Returns:
+        pd.DataFrame: With added latitude and longitude.
+    """
+    # Initiate a Nominatim searcher and add empty rows to dataframe
+    geolocator = Nominatim(user_agent="school_locator")
     df['Lat'] = None
     df['Lon'] = None
 
-    # Create a google geolocator
-    geolocator = Nominatim(user_agent="school_locator")
-
-    for school in df['College']:
-        # Get location for the school
+    # Find school locations and add lat and lon to dataframe
+    for index, row in df.iterrows():
         try:
-            location = geolocator.geocode(school)
-        except:
-            print(f"Failed to find {school}")
-        # Update 'Lat' and 'Long' columns with the returned values
-        df.loc[df['College'] == school, 'Lat'] = location.latitude
-        df.loc[df['College'] == school, 'Lon'] = location.longitude
+            location = geolocator.geocode(row['College'])
+            if location:
+                df.at[index, 'Lat'] = location.latitude
+                df.at[index, 'Lon'] = location.longitude
+        except Exception as e:
+            log.error(f"Failed to find {row['College']}: {e}")
 
     return df
 
 
 def find_closest_school(house_lat: float, house_lon: float,
                         schools_df: pd.DataFrame) -> int:
-    """Find the closest school to a given house based on its
-    latitude and longitude. Return its 2024 predicted ATAR."""
-    closest_distance = float('inf')
-    closest_school_atar = None
+    """
+    Find the closest school to a given house based on latitude and longitude.
+    Args:
+        house_lat (float).
+        house_lon (float).
+        schools_df (pd.DataFrame): School data.
+    Returns:
+        int: Predicted 2024 ATAR score of the closest school.
+    """
+    # Calculate the distance from the house to each school with apply
+    distances = schools_df.apply(
+        lambda row: geodesic(
+            (house_lat, house_lon), (row['Lat'], row['Lon'])
+        ).kilometers, axis=1
+    )
+    # Find index of lowest score with idxmin()
+    closest_index = distances.idxmin()
+    # Retrieve the 2024 ATAR score using the index
+    closest_school_atar = schools_df.at[closest_index, '2024_ATAR']
 
-    for _, school in schools_df.iterrows():
-        school_lat = school['Lat']
-        school_lon = school['Lon']
-        distance = geodesic((house_lat, house_lon),
-                            (school_lat, school_lon)).kilometers
-        if distance < closest_distance:
-            closest_distance = distance
-            closest_school_atar = school['2024_ATAR']
-
-    return closest_school_atar
+    return int(closest_school_atar)
 
 
-def update_dataframe(houses_df, schools_df, crime_df):
-    """Add the closest school's ATAR, and crime score
-    to each house in the houses DataFrame."""
-    # Create new columns in houses_df to store values
-    houses_df['edu_score'] = None
-    houses_df['crime_score'] = None
+def update_houses_with_scores(houses_df: pd.DataFrame,
+                              schools_df: pd.DataFrame,
+                              crime_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add education and crime scores to each house in the DataFrame.
+    Args:
+        houses_df (pd.DataFrame).
+        schools_df (pd.DataFrame).
+        crime_df (pd.DataFrame).
+    Returns:
+        pd.DataFrame: Updated DataFrame with added scores.
+    """
+    # Update the education scores of each house
+    houses_df['edu_score'] = houses_df.apply(
+        lambda row: find_closest_school(row["address.lat"],
+                                        row["address.lng"],
+                                        schools_df), axis=1)
 
-    # Iterate over each house in houses_df
-    for index, house in houses_df.iterrows():
-        # Add score for closest school
-        house_lat = house["address.lat"]
-        house_lon = house["address.lng"]
-        edu_score = find_closest_school(house_lat, house_lon, schools_df)
-        houses_df.at[index, 'edu_score'] = edu_score
+    # Update crime scores using apply row-wise.
+    # 1: Find where the suburb from crime db matches house address
+    # 2: Extract the crime rating value
+    # 3. Check the crime db is not empty. If not, return 0
+    houses_df['crime_score'] = houses_df.apply(
+        lambda row: crime_df[
+            crime_df['Suburb'].str.lower() == row["address.suburb"].lower()
+        ]['Rating'].values[0]
+        if not crime_df[
+            crime_df['Suburb'].str.lower() == row["address.suburb"].lower()
+        ].empty
+        else 0,
+        axis=1
+    )
 
-        # Add score for suburb crime
-        suburb = house["address.suburb"]
-        try:
-            rating = crime_df.loc[
-                crime_df['Suburb'].str.lower() == suburb.lower(),
-                'Rating'
-            ].values[0]
-
-        # If suburb does not have crime stats
-        except IndexError:
-            # Find a nearby house from a different suburb and use that number
-            for index2, house2 in houses_df.iterrows():
-                house2_lat = house2["address.lat"]
-                house2_lon = house2["address.lng"]
-                distance = geodesic((house_lat, house_lon),
-                                    (house2_lat, house2_lon)).kilometers
-                suburb2 = house2["address.suburb"]
-                if distance < 1 and suburb2 != suburb:
-                    rating = crime_df.loc[
-                                    crime_df['Suburb'].str.lower() == suburb2.lower(),
-                                    'Rating'
-                                ].values[0]
-        # Update houses df with correct crime rating
-        houses_df.at[index, 'crime_score'] = int(rating)
-    log.success("Updated dataframe")
+    log.success("Updated house dataframe with education and crime scores")
     return houses_df
 
 
-def clean_df(df: pd.DataFrame) -> pd.DataFrame:
-    # Clean major outliers from the dataset based on price using z score > 3
+def clean_house_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean house data by removing outliers and duplicates.
+    Args:
+        df (pd.DataFrame).
+    Returns:
+        pd.DataFrame: Cleaned.
+    """
+    # Find outliers (z-score > 3)
     z_scores = (df['price'] - df['price'].mean()) / df['price'].std()
-    outliers = abs(z_scores) > 3
-    cleaned_df = df[~outliers]
-    print(f"Removed {outliers.sum()} outliers")
-
-    # Remove duplicates
-    cleaned_df.drop_duplicates(inplace=True)
-    removed_duplicates = len(df) - len(cleaned_df)
-    print(f"There were {removed_duplicates} duplicates removed")
+    # Remove outliers and drop duplicates
+    cleaned_df = df[abs(z_scores) <= 3].drop_duplicates()
+    log.info(f"Removed {len(df) - len(cleaned_df)} outliers and duplicates")
     return cleaned_df
 
 
-def run(houses_df):
-    """Take the existing houses database and includes
-    education and crime scores"""
-    log.success("Adding crime stats")
+def run(houses_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Main function to update house data with education and crime scores.
+    Writes the data back to the sql server for use in main script.
+    Args:
+        houses_df (pd.DataFrame): DataFrame containing house data.
+    Returns:
+        pd.DataFrame: Updated house DataFrame.
+    """
+    log.success("Starting the update process")
 
-    # Make education score database
-    school_df = predict_results(school_atars())
-    school_df = school_address(school_df)  # Add the latitude and longitude
+    # Grab school results
+    school_df = add_school_coordinates(
+        predict_atar_results(compile_school_atars())
+        )
 
-    # Make crime database
-    crime_df = crime_db()
+    # Grab crime data
+    crime_df = load_crime_data()
 
-    # Update values in the hosues df
-    houses_df = update_dataframe(houses_df=houses_df,
-                                 schools_df=school_df,
-                                 crime_df=crime_df)
-    cleaned_df = clean_df(houses_df)
-    # Overwrite database with new data
-    write_to_sql(cleaned_df)
-    log.success("Crime stats added to db")
-    return houses_df
+    # Update and clean dataframe
+    updated_houses_df = update_houses_with_scores(houses_df,
+                                                  school_df,
+                                                  crime_df)
+    cleaned_houses_df = clean_house_data(updated_houses_df)
+
+    # Write to sql server
+    write_to_sql(cleaned_houses_df)
+    log.success("Update process completed")
+
+    return cleaned_houses_df
 
 
 if __name__ == "__main__":
-    run(houses_df=sql_query())
+    houses_df = sql_query()
+    run(houses_df)
