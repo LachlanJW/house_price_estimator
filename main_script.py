@@ -35,4 +35,8 @@ df = si.sql_query()  # Get database from SQL server
 
 # Regression models of price based on beds, baths, and parking
 # pe.regression_model(df)
-pe.log_regression(df)
+# pe.log_regression(df)
+
+
+# Most powerful gradient boosting model which extracts important features
+pe.train_and_evaluate_gbr(df)

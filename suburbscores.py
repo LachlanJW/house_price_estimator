@@ -15,13 +15,11 @@ from loguru import logger as log
 
 
 def load_crime_data() -> pd.DataFrame:
-    """
-    Load crime data from a CSV file and return a DataFrame.
+    """ Load crime data from a CSV file and return a DataFrame.
     Args:
         None.
     Returns:
-        pd.DataFrame: Crime data.
-    """
+        pd.DataFrame: Crime data. """
     # Create a dataframe of crime by suburb
     with open('ReferenceData/suburbcrime.csv', 'r') as file:
         data = file.readlines()
@@ -45,14 +43,12 @@ def load_crime_data() -> pd.DataFrame:
 
 
 def clean_education_data(df: pd.DataFrame, year: int) -> pd.DataFrame:
-    """
-    Clean and format education data.
+    """ Clean and format education data.
     Args:
         df (pd.DataFrame): Raw education data.
         year (int): Year to iterate through columns.
     Returns:
-        pd.DataFrame.
-    """
+        pd.DataFrame. """
     # Take and rename relevant columns
     df = df.drop(df.columns[[0, 1]], axis=1)
     df = df.rename(columns={'Median ATAR': f'Median ATAR ({year})',
@@ -78,11 +74,9 @@ def scrape_table(url: str) -> pd.DataFrame:
 
 
 def compile_school_atars() -> pd.DataFrame:
-    """
-    Compile ATAR data for all schools in the ACT from 2008 to 2018.
+    """ Compile ATAR data for all schools in the ACT from 2008 to 2018.
     Returns:
-        pd.DataFrame: DataFrame containing compiled ATAR data.
-    """
+        pd.DataFrame: DataFrame containing compiled ATAR data. """
     # Make a list of dataframes from the webpage of each years results
     base_url = "https://bettereducation.com.au/results/ACT.aspx?yr="
     dataframes = [
@@ -96,13 +90,11 @@ def compile_school_atars() -> pd.DataFrame:
 
 
 def predict_atar_results(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Predict 2024 ATAR scores using linear regression with historical data.
+    """ Predict 2024 ATAR scores using linear regression with historical data.
     Args:
         df (pd.DataFrame): Historical ATAR data.
     Returns:
-        pd.DataFrame: With added 2024 ATAR predictions.
-    """
+        pd.DataFrame: With added 2024 ATAR predictions. """
     df['2024_ATAR'] = None
     regr = LinearRegression()
 
@@ -121,13 +113,11 @@ def predict_atar_results(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_school_coordinates(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Add latitude and longitude coordinates to schools using geopy.
+    """ Add latitude and longitude coordinates to schools using geopy.
     Args:
         df (pd.DataFrame): School data.
     Returns:
-        pd.DataFrame: With added latitude and longitude.
-    """
+        pd.DataFrame: With added latitude and longitude. """
     # Initiate a Nominatim searcher and add empty rows to dataframe
     geolocator = Nominatim(user_agent="school_locator")
     df['Lat'] = None
@@ -148,15 +138,14 @@ def add_school_coordinates(df: pd.DataFrame) -> pd.DataFrame:
 
 def find_closest_school(house_lat: float, house_lon: float,
                         schools_df: pd.DataFrame) -> int:
-    """
-    Find the closest school to a given house based on latitude and longitude.
+    """ Find the closest school to a given house based on latitude
+    and longitude.
     Args:
         house_lat (float).
         house_lon (float).
         schools_df (pd.DataFrame): School data.
     Returns:
-        int: Predicted 2024 ATAR score of the closest school.
-    """
+        int: Predicted 2024 ATAR score of the closest school. """
     # Calculate the distance from the house to each school with apply
     distances = schools_df.apply(
         lambda row: geodesic(
@@ -174,15 +163,13 @@ def find_closest_school(house_lat: float, house_lon: float,
 def update_houses_with_scores(houses_df: pd.DataFrame,
                               schools_df: pd.DataFrame,
                               crime_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Add education and crime scores to each house in the DataFrame.
+    """ Add education and crime scores to each house in the DataFrame.
     Args:
         houses_df (pd.DataFrame).
         schools_df (pd.DataFrame).
         crime_df (pd.DataFrame).
     Returns:
-        pd.DataFrame: Updated DataFrame with added scores.
-    """
+        pd.DataFrame: Updated DataFrame with added scores. """
     # Update the education scores of each house
     houses_df['edu_score'] = houses_df.apply(
         lambda row: find_closest_school(row["address.lat"],
@@ -209,13 +196,11 @@ def update_houses_with_scores(houses_df: pd.DataFrame,
 
 
 def clean_house_data(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Clean house data by removing outliers and duplicates.
+    """ Clean house data by removing outliers and duplicates.
     Args:
         df (pd.DataFrame).
     Returns:
-        pd.DataFrame: Cleaned.
-    """
+        pd.DataFrame: Cleaned. """
     # Find outliers (z-score > 3)
     z_scores = (df['price'] - df['price'].mean()) / df['price'].std()
     # Remove outliers and drop duplicates
@@ -225,14 +210,12 @@ def clean_house_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def run(houses_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Main function to update house data with education and crime scores.
+    """ Main function to update house data with education and crime scores.
     Writes the data back to the sql server for use in main script.
     Args:
         houses_df (pd.DataFrame): DataFrame containing house data.
     Returns:
-        pd.DataFrame: Updated house DataFrame.
-    """
+        pd.DataFrame: Updated house DataFrame. """
     log.success("Starting the update process")
 
     # Grab school results

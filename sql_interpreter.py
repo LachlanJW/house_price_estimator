@@ -5,19 +5,22 @@
 import os
 import json
 from dotenv import load_dotenv
-import pandas as pd  # type: ignore
+import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Dict, List
+from loguru import logger as log
 
 
 # Obtain pandas dataframe from SQL server
 def sql_query(db_name: str = 'houses',
               query: str = 'SELECT * FROM houses') -> pd.DataFrame:
-    """From a local mysql server take a full table of data and convert
+    """ From a local mysql server take a full table of data and convert
     to a pandas dataframe.
-    Args: table, db_name.
-    Returns: pandas dataframe"""
+    Args:
+        table, db_name.
+    Returns:
+        pandas dataframe """
     # Get password from local .env file
     load_dotenv()
     SQL_PASSWORD = os.getenv("SQL_PW")
@@ -31,9 +34,11 @@ def sql_query(db_name: str = 'houses',
 
 
 def create_table_from_json(engine, data: List[Dict], table: str) -> None:
-    """Create an SQL table from JSON data.
-    Args: List[Dict] given from json.load.
-    Returns: None. The data is written to a local sql table"""
+    """ Create an SQL table from JSON data.
+    Args:
+        List[Dict] given from json.load.
+    Returns:
+        None. The data is written to a local sql table """
     try:
         # Normalize JSON data and create a DataFrame
         normalized_data = pd.json_normalize(data)
@@ -44,14 +49,17 @@ def create_table_from_json(engine, data: List[Dict], table: str) -> None:
         # Write DataFrame to SQL table
         df.to_sql(name=table, con=engine,
                   if_exists='replace', index=False)
-        print("Successfully written to sql table")
+        log.success("Successfully written to sql table")
     except SQLAlchemyError as e:
-        print(f"An error occurred while creating the table: {e}")
+        log.error(f"An error occurred while creating the table: {e}")
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Perform some data cleaning specific to this dataframe.
-    Args and Returns: pd.Dataframe."""
+    """ Perform some data cleaning specific to this dataframe.
+    Args:
+        pd.Dataframe.
+    Returns:
+        pd.Dataframe. """
     # First, convert some columns to integer, some to float
     int_list = ["id",
                 "address.postcode",
@@ -84,8 +92,12 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def write_to_sql(df: pd.DataFrame, db_name: str = 'houses'):
-    """Write a pandas DataFrame to a SQL server.
-    Args: df: pandas DataFrame to be written, db_name: name of the database."""
+    """ Write a pandas DataFrame to a SQL server.
+    Args:
+        df: pd.DatFrame to be written,
+        db_name: str name of the database.
+    Returns:
+        None """
     # Get password from local .env file
     load_dotenv()
     SQL_PASSWORD = os.getenv("SQL_PW")
@@ -111,7 +123,7 @@ def run(db: str = 'houses', table: str = 'houses'):
         with open("data.json", 'r') as file:
             test_data = json.load(file)
     except FileNotFoundError:
-        print("Error: data.json file not found.")
+        log.error("Error: data.json file not found.")
         return
 
     # Create SQL table from JSON data
