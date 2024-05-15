@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.linear_model import LinearRegression  # type: ignore
 from sql_interpreter import write_to_sql, sql_query
 from functools import reduce
-from geopy.geocoders import Nominatim  # type: ignore
-from geopy.distance import geodesic  # type: ignore
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
 from loguru import logger as log
 
 

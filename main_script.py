@@ -1,5 +1,8 @@
+# noqa is added to avoid Flake8 warnings due to
+# "unused" when functions are commented out
+
 import domain_scraper_2 as ds2  # noqa
-import sql_interpreter as si
+import sql_interpreter as si  # noqa
 import price_estimator as pe  # noqa
 import suburbscores as s_score  # noqa
 import asyncio  # noqa

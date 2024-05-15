@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns  # type: ignore
-import plotly.express as px  # type: ignore
-from sklearn.linear_model import LinearRegression  # type: ignore
-from sklearn.model_selection import train_test_split  # type: ignore
+import seaborn as sns
+import plotly.express as px
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from loguru import logger as log

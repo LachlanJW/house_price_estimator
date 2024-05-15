@@ -7,7 +7,7 @@ import json
 import jmespath
 import random
 from dotenv import load_dotenv
-from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse  # type: ignore # noqa
+from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse
 from typing import Dict, List, Tuple
 from loguru import logger as log
 
