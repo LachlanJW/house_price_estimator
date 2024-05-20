@@ -40,7 +40,7 @@ Actual vs predicted priced clearly correlate, and although the higher price home
 The residuals show relatively good spread considering the binning of small value integers is still present.
 ![alt text](Reference_Images/9-gbr-resid-testing.png)
 
-The r-squared is up to 0.58, and the residuals skew is 
+The r-squared is up to 0.58, and the residuals skew is down to 0.69.
 
 Feature importances:
 features.beds       0.479417

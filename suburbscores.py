@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from sklearn.linear_model import LinearRegression  # type: ignore
+from sklearn.linear_model import LinearRegression
 from sql_interpreter import write_to_sql, sql_query
 from functools import reduce
 from geopy.geocoders import Nominatim
