@@ -1,17 +1,12 @@
-import pytest
 from unittest.mock import patch
-from functools import reduce
-import os
 
 import pandas as pd
 import numpy as np
-import json
 from sklearn.linear_model import LinearRegression
 
-from domain_scraper_2 import pick_and_remove_suburb, parse_search_page
-from suburbscores import (clean_education_data,
-                          compile_school_atars,
-                          predict_atar_results)
+from house_price_estimator.suburbscores import (clean_education_data,
+                                                compile_school_atars,
+                                                predict_atar_results)
 
 
 def convert_df_to_int32(df: pd.DataFrame) -> pd.DataFrame:
@@ -19,61 +14,6 @@ def convert_df_to_int32(df: pd.DataFrame) -> pd.DataFrame:
     for col in df.select_dtypes(include=['number']).columns:
         df[col] = df[col].astype('int32')
     return df
-
-
-# =============================================================================
-#                              domain_scraper2.py
-# =============================================================================
-
-
-def test_pick_and_remove_suburb():
-    json_file = "suburbs_postcodes_temp.json"
-    suburb_data = {
-        "2612": ["Turner", "Acton"],
-        "2606": ["Lyneham", "O'Connor"]
-    }
-
-    # Write the sample suburb data to the temporary JSON file
-    with open(json_file, 'w') as file:
-        json.dump(suburb_data, file)
-
-    # Call the function under test
-    suburb, postcode = pick_and_remove_suburb(json_file)
-
-    # Read the updated data from the JSON file
-    with open(json_file, 'r') as file:
-        updated_data = json.load(file)
-
-    # Check the selected suburb has been removed from the JSON file
-    assert suburb not in updated_data[postcode]
-
-    # Check length of suburb list for the selected postcode is decremented
-    assert len(updated_data[postcode]) == 1
-
-    # Clean up: remove the temporary JSON file
-    os.remove(json_file)
-
-
-def test_parse_search_page():
-    sample_data = {
-        "listingsMap": {
-            "1": {"id": 1, "listingModel": {"price": "$555,000", "address": "123 Main St", "features": ["garage"], "tags": {"tagText": "New"}}},  # noqa
-            "2": {"id": 2, "listingModel": {"price": "$600,000", "address": "456 Oak St", "features": ["pool"], "tags": {"tagText": "Featured"}}}  # noqa
-        }
-    }
-
-    # Call the function with the sample data
-    parsed_data = parse_search_page(sample_data)
-
-    # Check if the parsed data is correct
-    assert len(parsed_data) == 2
-    assert parsed_data[0] == {"id": 1, "price": "$555,000", "address": "123 Main St", "features": ["garage"], "date": "New"}  # noqa
-    assert parsed_data[1] == {"id": 2, "price": "$600,000", "address": "456 Oak St", "features": ["pool"], "date": "Featured"}  # noqa
-
-
-# =============================================================================
-#                              suburbscores.py
-# =============================================================================
 
 
 def test_clean_education_data():
@@ -126,6 +66,7 @@ def mock_scrape_table(url):
 def mock_clean_education_data(df, year):
     return df.rename(columns={'Median ATAR': f'Median ATAR ({year})',
                               'ATAR >= 65': f'ATAR >= 65 ({year})'})
+
 
 # Mocking scrape_table and clean_education_data
 @patch('suburbscores.scrape_table', side_effect=mock_scrape_table)
@@ -212,7 +153,3 @@ def test_predict_atar_results():
 
     # Use pandas assert function to compare DataFrames
     pd.testing.assert_frame_equal(result_df, expected_df)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "house_price_estimator"
+version = "0.0.1"
+authors = [
+  { name="Lachlan Watson", email="watsonjlachlan@gmail.com" },
+]
+description = "A fun project for learning."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Windorws 11",
+]
+
+[project.urls]
+Homepage = "https://github.com/LachlanJW/house_price_estimator"
