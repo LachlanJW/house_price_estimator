@@ -1,8 +1,8 @@
 # This file served to create an initial sql database for house price project
 # It does not need to be accessed after initialisation
 
-import mysql.connector  # type: ignore
-import os  # type: ignore
+import mysql.connector
+import os
 from mysql.connector import Error
 from dotenv import load_dotenv
 
@@ -36,6 +36,8 @@ def execute_query(connection, query):
         print("Query successful")
     except Error as err:
         print(f"Error: '{err}'")
+    finally:
+        cursor.close()
 
 
 # Connect to an existing SQL server database
@@ -59,13 +61,33 @@ def sql_connection(passwd: str, db_name: str,
     return connection
 
 
-# # Create house price database
-# create_database_query = "CREATE DATABASE houses"
+def check_database_exists(connection, db_name):
+    cursor = connection.cursor()
+    cursor.execute("SHOW DATABASES;")
+    databases = cursor.fetchall()
+    for db in databases:
+        if db[0] == db_name:
+            print(f"Database '{db_name}' exists.")
+            return True
+    print(f"Database '{db_name}' does not exist.")
+    return False
 
-# connection = create_sql_connection(passwd=os.getenv("SQL_PW"))
-# execute_query(connection=connection, query=create_database_query)
+
+# Create house price database
+def create_db():
+    create_database_query = "CREATE DATABASE houses"
+    connection = create_sql_connection(passwd=os.getenv("SQL_PW"))
+    if connection:
+        execute_query(connection=connection, query=create_database_query)
+        connection.close()
+        # Verify if the database was created
+        check_database_exists(connection, 'houses')
+        connection.close()
 
 
-# Connect to house price database
-# connection = create_sql_connection(passwd=os.getenv("SQL_PW"), db_name="houses")
-# execute_query(connection=connection, query=query)
+def run():
+    create_db()
+
+
+if __name__ == "__main__":
+    run()

@@ -219,5 +219,5 @@ async def run():
 
     return
 
-if __name__ == "__domain_scraper_2__":
+if __name__ == "__main__":
     asyncio.run(run())

@@ -10,35 +10,16 @@
         "Russell Hill",
         "Yarralumla"
     ],
-    "2601": [
-        "Canberra"
-    ],
-    "2602": [
-        "Ainslie",
-        "Hackett",
-        "O'connor"
-    ],
-    "2609": [
-        "Symonston"
-    ],
     "2611": [
-        "Brindabella",
         "Chapman",
         "Duffy",
-        "Fisher",
         "Mount Stromlo",
         "Pierces Creek",
         "Stirling",
         "Uriarra",
-        "Uriarra Forest",
-        "Weston Creek"
-    ],
-    "2614": [
-        "Cook",
-        "Hawker"
+        "Uriarra Forest"
     ],
     "2615": [
-        "Charnwood",
         "Florey",
         "Flynn",
         "Fraser",
@@ -47,30 +28,13 @@
         "Kippax",
         "Kippax Centre",
         "Macgregor",
-        "Melba",
-        "Spence"
+        "Melba"
     ],
     "2617": [
         "Belconnen",
-        "Belconnen Dc",
-        "Giralang",
         "Kaleen"
     ],
     "2905": [
-        "Bonython",
-        "Gilmore",
-        "Isabella Plains",
         "Richardson"
-    ],
-    "2906": [
-        "Banks",
-        "Gordon"
-    ],
-    "2911": [
-        "Crace",
-        "Mitchell"
-    ],
-    "2914": [
-        "Harrison"
     ]
 }

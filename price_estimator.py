@@ -222,6 +222,7 @@ def train_and_evaluate_gbr(df: pd.DataFrame) -> GradientBoostingRegressor:
         GradientBoostingRegressor: Trained Gradient Boosting Regressor model.
         """
     # Define target variable and features
+    print(df.columns)
     target = df['price']
     features = df[['features.beds',
                    'features.baths',

@@ -40,11 +40,7 @@ def create_table_from_json(engine, data: List[Dict], table: str) -> None:
     Returns:
         None. The data is written to a local sql table """
     try:
-        # Normalize JSON data and create a DataFrame
-        normalized_data = pd.json_normalize(data)
-        df = pd.DataFrame(normalized_data)
-
-        df = clean_df(df)  # Perform some data cleaning, type conversion etc
+        df = clean_df(data)  # Perform some data cleaning, type conversion etc
 
         # Write DataFrame to SQL table
         df.to_sql(name=table, con=engine,
@@ -54,13 +50,17 @@ def create_table_from_json(engine, data: List[Dict], table: str) -> None:
         log.error(f"An error occurred while creating the table: {e}")
 
 
-def clean_df(df: pd.DataFrame) -> pd.DataFrame:
+def clean_df(data: List[Dict]) -> pd.DataFrame:
     """ Perform some data cleaning specific to this dataframe.
     Args:
         pd.Dataframe.
     Returns:
         pd.Dataframe. """
-    # First, convert some columns to integer, some to float
+    # Normalize JSON data and create a DataFrame
+    normalized_data = pd.json_normalize(data)
+    df = pd.DataFrame(normalized_data)
+
+    # Convert some columns to integer, some to float
     int_list = ["id",
                 "address.postcode",
                 "features.beds",
