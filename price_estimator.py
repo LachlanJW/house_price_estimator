@@ -6,8 +6,10 @@ import plotly.express as px
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from loguru import logger as log
+import sql_interpreter as si
+import tensorflow as tf
 
 # =============================================================================
 #                         Basic overview visualisation
@@ -344,3 +346,77 @@ def visualize_gbr_results(y_train, y_train_pred, y_test, y_test_pred):
     plt.title('Residuals vs Predicted Prices (Testing Data)')
     plt.legend()
     plt.show()
+
+
+# =============================================================================
+#                         Tensorflow machine learning
+# =============================================================================
+
+
+df = si.sql_query()
+
+
+def tensorflow_model(df: pd.DataFrame) -> None:
+    """Build and evaluate a tensorflow model.
+    Args:
+        df (pd.DataFrame) of house data.
+    Returns:
+        None """
+    target = df['price']
+    features = df.loc[:, ['features.beds',
+                          'features.baths',
+                          'features.parking',
+                          'crime_score',
+                          'edu_score']]
+
+    # Ensure the data types are correct
+    features = features.astype(float)
+    target = target.astype(float)
+
+    # Split data into training and testing
+    X_train, X_test, y_train, y_test = train_test_split(features,
+                                                        target,
+                                                        test_size=0.2,
+                                                        random_state=42
+                                                        )
+
+    # Define the model
+    model = tf.keras.Sequential([
+        tf.keras.Input(shape=(features.shape[1],)),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(1)
+    ])
+
+    # Compile the model
+    model.compile(optimizer='adam', loss='mean_squared_error')
+
+    # Train the model
+    model.fit(X_train, y_train, epochs=10, batch_size=32)
+
+    # Predict on the test set
+    y_pred = model.predict(X_test)
+
+    # Calculate evaluation metrics
+    mae = mean_absolute_error(y_test, y_pred)
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    print(f"Mean Absolute Error: {mae}")
+    print(f"Mean Squared Error: {mse}")
+    print(f"R-squared: {r2}")
+
+    # Plot the actual vs predicted prices and save the plot to a file
+    plt.figure(figsize=(10, 6))
+    plt.scatter(y_test, y_pred, alpha=0.5)
+    plt.xlabel('Actual Prices')
+    plt.ylabel('Predicted Prices')
+    plt.title('Actual vs Predicted Prices')
+    plt.plot([min(y_test), max(y_test)],
+             [min(y_test), max(y_test)],
+             color='purple')
+    plt.savefig("actual_vs_predicted_prices.png")
+    print("Plot saved as actual_vs_predicted_prices.png")
+
+
+tensorflow_model(df)

@@ -1,10 +1,8 @@
 {
     "2600": [
         "Barton",
-        "Canberra",
         "Capital Hill",
         "Deakin",
-        "Harman",
         "Hmas Harman",
         "Parliament House",
         "Russell Hill",
@@ -31,10 +29,6 @@
         "Melba"
     ],
     "2617": [
-        "Belconnen",
-        "Kaleen"
-    ],
-    "2905": [
-        "Richardson"
+        "Belconnen"
     ]
 }
